@@ -1,0 +1,349 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../views';
+
+/*
+  Instrument Sans, self-hosted.
+
+  --font-sans below has always named this face, but nothing ever loaded it, so
+  every screen actually rendered in the system fallback. It is served from
+  public/fonts rather than Google Fonts on purpose: ShopMGR is installed on the
+  merchant's own server, and a self-hosted product should not make every page
+  view a third-party request to Google (a privacy and, in the EU, a compliance
+  problem for the merchant) or break on an air-gapped install.
+
+  One variable file per subset covers the whole 400-700 range in ~41KB total,
+  which is smaller than the four static weights the UI uses.
+*/
+@font-face {
+    font-family: 'Instrument Sans';
+    font-style: normal;
+    font-weight: 400 700;
+    font-stretch: 100%;
+    font-display: swap;
+    src: url('/fonts/instrument-sans-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+        U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+    font-family: 'Instrument Sans';
+    font-style: normal;
+    font-weight: 400 700;
+    font-stretch: 100%;
+    font-display: swap;
+    src: url('/fonts/instrument-sans-latin-ext.woff2') format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308,
+        U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+        U+2C60-2C7F, U+A720-A7FF;
+}
+
+/*
+  ShopMGR design system: "Storefront Violet".
+  Cool slate neutrals + a violet accent. Violet keeps rose/red free for
+  destructive actions, failed payments, and refund states. Tokens are defined
+  once here so the whole product rebrands by editing the --color-brand-* scale.
+*/
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Brand accent (violet). Change these to rebrand. */
+    --color-brand-50: #fff7ed;
+    --color-brand-100: #ffedd5;
+    --color-brand-200: #fed7aa;
+    --color-brand-300: #fdba74;
+    --color-brand-400: #fb923c;
+    --color-brand-500: #f97316;
+    --color-brand-600: #ea580c;
+    --color-brand-700: #c2410c;
+    --color-brand-800: #9a3412;
+    --color-brand-900: #7c2d12;
+    --color-brand-950: #431407;
+
+    /* Dark chrome (top utility bar on both the admin and the storefront). */
+    --color-chrome: #17132a;
+    --color-chrome-soft: #221b3d;
+
+    /* Storefront surfaces, warmer than the admin's cool slate so the shop
+       reads as a shop, not as an admin panel wearing a different hat. */
+    --color-shop-bg: #fbfaf9;
+    --color-shop-ink: #1c1917;
+    --color-shop-muted: #78716c;
+    --color-shop-line: #f0efed;
+}
+
+@layer base {
+    html {
+        -webkit-text-size-adjust: 100%;
+    }
+    body {
+        @apply bg-slate-50 text-slate-800 antialiased;
+    }
+    /* Kill the black focus flash on click; keep keyboard focus rings. */
+    :focus:not(:focus-visible) {
+        outline: none;
+    }
+    :focus-visible {
+        @apply outline-none ring-2 ring-brand-500/60 ring-offset-2 ring-offset-white;
+    }
+    /* Table numerics and money line up. */
+    .tabular {
+        font-variant-numeric: tabular-nums;
+    }
+    /* Hide Alpine-controlled elements until Alpine initializes. */
+    [x-cloak] {
+        display: none !important;
+    }
+}
+
+@layer components {
+    /* Button loading state: any form submit gets a spinner on its button so an
+       action never sits silently. Applied globally by public/js + the layout. */
+    button.is-loading, a.is-loading {
+        pointer-events: none;
+        opacity: 0.8;
+    }
+    button.is-loading::before, a.is-loading::before {
+        content: '';
+        display: inline-block;
+        width: 0.85em;
+        height: 0.85em;
+        margin-right: 0.45em;
+        vertical-align: -0.1em;
+        border: 2px solid currentColor;
+        border-right-color: transparent;
+        border-radius: 9999px;
+        animation: vx-spin 0.6s linear infinite;
+    }
+    @keyframes vx-spin { to { transform: rotate(360deg); } }
+
+    /* A thin, reusable divider between page sections (house style). */
+    .section-divider {
+        @apply border-t border-slate-200;
+    }
+
+    /* ---- Admin primitives ------------------------------------------------
+       "Ledger": merchants scan this product for exceptions and for money, so
+       those two things get the design attention and everything else stays
+       quiet. Plain CSS (not @apply) wherever a value is computed, so the
+       browser-JIT build cannot drop it.
+
+       1. The exception rail, a colour-keyed left edge on table rows and
+       worklist items. Scanning one vertical edge is faster than reading a
+       badge column, and it survives 375px where a badge column truncates.
+       Rendered as an inset shadow so it never changes layout or column
+       widths. Badges stay, but as the explanation, not the signal. */
+    .vx-rail > :first-child {
+        box-shadow: inset 3px 0 0 var(--vx-rail-color, transparent);
+    }
+    /* Settled states deliberately have NO rail. If every row carries one the
+       edge stops being a signal and becomes a stripe, so only rows that want
+       something from the merchant are marked. */
+    .vx-rail-none,
+    .vx-rail-neutral,
+    .vx-rail-success {
+        --vx-rail-color: transparent;
+    }
+    .vx-rail-info {
+        --vx-rail-color: var(--color-brand-400);
+    }
+    .vx-rail-warn {
+        --vx-rail-color: var(--color-amber-400);
+    }
+    .vx-rail-danger {
+        --vx-rail-color: var(--color-rose-400);
+    }
+
+    /* 2. Money. Merchants read magnitude far more often than cents, so at
+       display sizes the symbol and the fractional part step back and the
+       significant digits carry the number. Deliberately NOT applied to table
+       amounts: at 14px the shrunk cents cost more legibility than the
+       hierarchy buys. */
+    .vx-money {
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.02em;
+    }
+    .vx-money-sym,
+    .vx-money-frac {
+        font-size: 0.62em;
+        font-weight: 500;
+        opacity: 0.5;
+    }
+    .vx-money-sym {
+        margin-inline-end: 0.05em;
+        vertical-align: 0.42em;
+    }
+    .vx-money-frac {
+        vertical-align: 0.42em;
+        margin-inline-start: 0.06em;
+    }
+
+    /* 3. Eyebrow label. Used to title a region without spending a heading
+       level, so page structure stays a real h1/h2 outline. */
+    .vx-eyebrow {
+        font-size: 0.6875rem;
+        font-weight: 600;
+        line-height: 1;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--color-slate-400);
+    }
+
+    /* 4. Toolbar attached to the top of a data surface: filters share the
+       card's edge instead of floating as a third stacked row above it. */
+    .vx-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.625rem 0.75rem;
+        border-bottom: 1px solid var(--color-slate-200);
+        background: color-mix(in srgb, var(--color-slate-50), white 40%);
+    }
+
+    /* 5. Segmented control. One implementation instead of the four
+       near-identical inline copies this markup grew. */
+    .vx-seg {
+        display: inline-flex;
+        flex-wrap: nowrap;
+        gap: 0.125rem;
+        padding: 0.1875rem;
+        border-radius: 0.5rem;
+        background: var(--color-slate-100);
+    }
+    .vx-seg-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        white-space: nowrap;
+        padding: 0.3125rem 0.625rem;
+        border-radius: 0.375rem;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--color-slate-500);
+        text-decoration: none;
+        transition:
+            background 0.15s,
+            color 0.15s;
+    }
+    .vx-seg-item:hover {
+        color: var(--color-slate-800);
+    }
+    .vx-seg-item.is-active {
+        background: #fff;
+        color: var(--color-slate-900);
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.09);
+    }
+    .vx-seg-count {
+        font-variant-numeric: tabular-nums;
+        font-size: 0.6875rem;
+        color: var(--color-slate-400);
+    }
+    .vx-seg-item.is-active .vx-seg-count {
+        color: var(--color-slate-500);
+    }
+    /* Horizontal nav can scroll without showing a scrollbar. */
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    /* ---- Storefront primitives ------------------------------------------
+       The public shop shares the token layer but not the admin's chrome, so
+       these give it its own quieter, editorial surface treatment. */
+    .shop-body {
+        background: var(--color-shop-bg);
+        color: var(--color-shop-ink);
+    }
+    /* Sets BOTH the border colour and the ring colour to the light shop line.
+       Tailwind's ring utility reads --tw-ring-color, not border-color, so
+       "ring-1 ... shop-hairline" was falling back to currentColor (a dark ring)
+       everywhere. Setting the ring var here fixes every ringed card at once. */
+    .shop-hairline {
+        border-color: var(--color-shop-line);
+        --tw-ring-color: var(--color-shop-line);
+    }
+    /* Product card media box: fixed square ratio so a grid of mixed-aspect
+       uploads still lines up. A hairline border frames every image so a
+       light product photo does not bleed into the page background. */
+    .shop-media {
+        aspect-ratio: 1 / 1;
+        background: #f5f5f4;
+        overflow: hidden;
+        border: 1px solid var(--color-shop-line);
+    }
+    .shop-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .shop-card:hover .shop-media img {
+        transform: scale(1.04);
+    }
+    /* Variant option pill. */
+    .shop-option {
+        @apply inline-flex items-center justify-center min-w-11 rounded-full border px-3.5 py-2 text-sm font-medium transition cursor-pointer select-none;
+        border-color: var(--color-shop-line);
+        color: var(--color-shop-ink);
+        background: #fff;
+    }
+    .shop-option:hover {
+        border-color: var(--color-brand-400);
+    }
+    .shop-option.is-active {
+        border-color: var(--color-brand-600);
+        background: var(--color-brand-50);
+        color: var(--color-brand-800);
+    }
+    .shop-option.is-disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        text-decoration: line-through;
+    }
+}
+
+/*
+ * Safety net for horizontal page scroll. A grid or flex child defaults to
+ * min-width:auto, so a wide descendant (a min-w table, a long token) sizes the
+ * track to the content and the PAGE scrolls sideways instead of the region.
+ * Allowing scroll containers to shrink keeps the overflow where it belongs.
+ * The page body must never scroll horizontally.
+ */
+@layer components {
+    .vx-scroll {
+        min-width: 0;
+        max-width: 100%;
+    }
+    /* Blended thin scrollbar for scroll regions (modal body, wide tables).
+       Only shows when content genuinely overflows; the track is transparent
+       and the thumb is a muted neutral so it reads as part of the surface,
+       not a heavy default OS bar. */
+    .vx-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: color-mix(in srgb, var(--color-slate-400), transparent 45%) transparent;
+    }
+    .vx-scroll::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    .vx-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .vx-scroll::-webkit-scrollbar-thumb {
+        background: color-mix(in srgb, var(--color-slate-400), transparent 55%);
+        border-radius: 9999px;
+        border: 2px solid transparent;
+        background-clip: padding-box;
+    }
+    .vx-scroll::-webkit-scrollbar-thumb:hover {
+        background: color-mix(in srgb, var(--color-slate-500), transparent 40%);
+        background-clip: padding-box;
+    }
+}

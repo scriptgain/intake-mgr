@@ -1,0 +1,237 @@
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Validation\ValidationException;
+
+class AuthController extends Controller
+{
+    public function show(Request $request)
+    {
+        return view('auth.login', [
+            'devLoginUser' => self::devLoginUser($request),
+            // Staff persona buttons, populated only from the allowlisted IP.
+            'demoStaff' => \App\Support\DemoPersonas::staffFor($request),
+        ]);
+    }
+
+    /**
+     * One-click sign-in as a seeded staff persona (Merchant Admin / Staff).
+     *
+     * Same trust model as devLogin(): the IP is re-checked here, so this 404s
+     * from anywhere but the allowlisted address, and it bypasses the captcha
+     * that protects the password form. No captcha middleware is attached to the
+     * route, matching the developer quick login.
+     */
+    public function demoLoginStaff(Request $request, string $persona)
+    {
+        abort_unless(\App\Support\DemoPersonas::allowed($request), 404);
+
+        $user = \App\Support\DemoPersonas::resolveStaff($persona);
+        abort_if($user === null, 404);
+
+        Auth::login($user);
+        $request->session()->regenerate();
+        \App\Models\AuditLog::record('login', 'Signed in as demo persona "'.$user->name.'" from '.$request->ip());
+
+        return redirect()->intended(route('dashboard'));
+    }
+
+    /**
+     * One-click developer sign-in, restricted to an allowlisted IP.
+     *
+     * Both the button and the endpoint use this same check, so the route is not
+     * merely hidden: a POST from any other address 404s. Inert unless BOTH
+     * dev_login_ip and dev_login_email are set in Settings, so it can be
+     * switched off from the admin without a deploy.
+     *
+     * This only resolves to a real client IP because trustProxies now includes
+     * the Cloudflare ranges. Under the old loopback-only list every request
+     * looked like a Cloudflare edge address and this would match nobody.
+     */
+    public static function devLoginUser(Request $request): ?\App\Models\User
+    {
+        $allowed = trim((string) \App\Models\Setting::get('dev_login_ip', ''));
+        $email = trim((string) \App\Models\Setting::get('dev_login_email', ''));
+
+        if ($allowed === '' || $email === '') {
+            return null;
+        }
+
+        $ips = array_filter(array_map('trim', explode(',', $allowed)));
+
+        if (! in_array((string) $request->ip(), $ips, true)) {
+            return null;
+        }
+
+        return \App\Models\User::where('email', $email)->first();
+    }
+
+    public function devLogin(Request $request)
+    {
+        $user = self::devLoginUser($request);
+
+        abort_if($user === null, 404);
+
+        Auth::login($user);
+        $request->session()->regenerate();
+        \App\Models\AuditLog::record('login', 'Signed in via developer quick login from '.$request->ip());
+
+        return redirect()->intended(route('dashboard'));
+    }
+
+
+    public function login(Request $request)
+    {
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
+
+        // Per-account lockout: 5 failed tries for an email, then a 60s cooldown.
+        // Keyed by email only — the origin sits behind Cloudflare, so client IPs
+        // rotate per edge and can't be used to accumulate attempts reliably.
+        $key = 'login:'.strtolower($credentials['email']);
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            $seconds = RateLimiter::availableIn($key);
+            \App\Models\AuditLog::record('login_blocked', 'Login throttled for '.$credentials['email']);
+            throw ValidationException::withMessages([
+                'email' => "Too many attempts. Try again in {$seconds} seconds.",
+            ]);
+        }
+
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            RateLimiter::clear($key);
+            // Firewall: record the success and reset this IP's failed-attempt counter.
+            if ($ip = $request->ip()) {
+                \App\Models\LoginAttempt::where('ip', $ip)->where('successful', false)->delete();
+                \App\Models\LoginAttempt::create(['ip' => $ip, 'email' => $credentials['email'], 'successful' => true]);
+            }
+            $user = Auth::user();
+            if ($user->hasTwoFactor()) {
+                // Skip the code prompt if this device was remembered (within 30 days).
+                if (hash_equals($this->deviceToken($user), (string) $request->cookie('td_2fa'))) {
+                    $request->session()->regenerate();
+                    \App\Models\AuditLog::record('login', 'Signed in (2FA remembered device)');
+
+                    return redirect()->intended(route('dashboard'));
+                }
+                Auth::logout();
+                $request->session()->put('2fa:user', $user->id);
+                $request->session()->put('2fa:remember', $request->boolean('remember'));
+
+                return redirect()->route('2fa.challenge');
+            }
+            $request->session()->regenerate();
+            \App\Models\AuditLog::record('login', 'Signed in');
+
+            return redirect()->intended(route('dashboard'));
+        }
+
+        RateLimiter::hit($key, 60);
+
+        // Firewall: log the failed attempt and auto-ban the IP if it crosses the
+        // configured limit within the lockout window. Allowlisted IPs are spared.
+        if ($ip = $request->ip()) {
+            \App\Models\LoginAttempt::create([
+                'ip' => $ip,
+                'email' => $credentials['email'],
+                'successful' => false,
+            ]);
+
+            $limit = (int) \App\Models\Setting::get('failed_login_limit', 10);
+            $window = (int) \App\Models\Setting::get('lockout_minutes', 60);
+            if ($limit > 0 && $window > 0
+                && ! \App\Support\Firewall::ipAllowed($ip, \App\Support\Firewall::allowlist())) {
+                $recentFails = \App\Models\LoginAttempt::where('ip', $ip)
+                    ->where('successful', false)
+                    ->where('created_at', '>=', now()->subMinutes($window))
+                    ->count();
+                if ($recentFails >= $limit) {
+                    \App\Models\BannedIp::updateOrCreate(
+                        ['ip' => $ip],
+                        [
+                            'reason' => 'Auto-ban: '.$recentFails.' failed login attempts',
+                            'expires_at' => now()->addMinutes($window),
+                        ],
+                    );
+                    \App\Models\AuditLog::record('firewall_autoban', 'Auto-banned IP '.$ip.' after '.$recentFails.' failed logins');
+                }
+            }
+        }
+
+        return back()
+            ->withErrors(['email' => 'Those credentials do not match our records.'])
+            ->onlyInput('email');
+    }
+
+    /** Show the 2FA code prompt after a valid password. */
+    public function challenge(Request $request)
+    {
+        if (! $request->session()->has('2fa:user')) {
+            return redirect()->route('login');
+        }
+
+        return view('auth.two-factor-challenge');
+    }
+
+    public function challengeVerify(Request $request)
+    {
+        $request->validate(['code' => ['required', 'string']]);
+        $id = $request->session()->get('2fa:user');
+        if (! $id) {
+            return redirect()->route('login');
+        }
+        $user = \App\Models\User::find($id);
+        if (! $user || ! \App\Support\Totp::verify((string) $user->two_factor_secret, $request->input('code'))) {
+            return back()->withErrors(['code' => 'That code is incorrect.']);
+        }
+        Auth::loginUsingId($id, (bool) $request->session()->get('2fa:remember', false));
+        $request->session()->forget(['2fa:user', '2fa:remember']);
+        $request->session()->regenerate();
+        \App\Models\AuditLog::record('login', 'Signed in (2FA)');
+
+        $response = redirect()->intended(route('dashboard'));
+        if ($request->boolean('remember_device')) {
+            // 30-day encrypted cookie; the token is derived from the 2FA secret so
+            // resetting 2FA invalidates every remembered device.
+            $response->withCookie(cookie('td_2fa', $this->deviceToken($user), 43200));
+        }
+
+        return $response;
+    }
+
+    /** Per-user, per-secret token used to remember a 2FA-verified device. */
+    private function deviceToken(\App\Models\User $user): string
+    {
+        return hash_hmac('sha256', $user->id.'|'.$user->two_factor_secret, (string) config('app.key'));
+    }
+
+    /**
+     * One-click login via a short-lived signed URL. The 'signed' middleware
+     * rejects any tampered or expired link, so the signature is the credential;
+     * no password is transmitted. Convenience for the admin — skips 2FA.
+     */
+    public function magic(Request $request, \App\Models\User $user)
+    {
+        Auth::login($user);
+        $request->session()->regenerate();
+        \App\Models\AuditLog::record('login', 'Signed in via magic link');
+
+        return redirect()->intended(route('dashboard'));
+    }
+
+    public function logout(Request $request)
+    {
+        \App\Models\AuditLog::record('logout', 'Signed out');
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login');
+    }
+}
