@@ -30,10 +30,9 @@ class DemoPersonas
     public static function customerDefinitions(): array
     {
         return [
-            'ada' => ['email' => 'ada@example.com', 'label' => 'Ada Chen', 'note' => '5 Orders'],
-            'marcus' => ['email' => 'marcus.reed@example.com', 'label' => 'Marcus Reed', 'note' => '2 Orders'],
-            'nadia' => ['email' => 'nadia@example.com', 'label' => 'Nadia Brooks', 'note' => 'Has A Refund'],
-            'theo' => ['email' => 'theo@example.com', 'label' => 'Theo Alvarez', 'note' => 'Order In Progress'],
+            'dana' => ['email' => 'dana@example.com', 'label' => 'Dana (Full Portal)', 'note' => 'Requests, Tickets, Work Orders, Invoices'],
+            'marcus' => ['email' => 'marcus@example.com', 'label' => 'Marcus', 'note' => 'A Scheduled Visit In Progress'],
+            'priya' => ['email' => 'priya@example.com', 'label' => 'Priya', 'note' => 'New Customer'],
         ];
     }
 

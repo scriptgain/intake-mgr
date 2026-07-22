@@ -35,6 +35,11 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->applyDatabaseConfig();
         $this->composeStorefront();
+
+        // API rate limit: per token, or per IP when unauthenticated.
+        \Illuminate\Support\Facades\RateLimiter::for('api', fn ($request) => \Illuminate\Cache\RateLimiting\Limit::perMinute(
+            (int) config('api.rate_limit', 120)
+        )->by($request->user()?->id ? 'tok:'.$request->user()->id : 'ip:'.$request->ip()));
     }
 
     /**

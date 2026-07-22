@@ -37,6 +37,7 @@ use App\Http\Controllers\Shop\AccountController;
 use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\CatalogController;
 use App\Http\Controllers\Shop\CheckoutController;
+use App\Http\Controllers\Shop\DocsController;
 use App\Http\Controllers\Shop\PaymentController;
 use App\Http\Controllers\Shop\ServiceRequestController as ServiceRequestIntakeController;
 use Illuminate\Routing\Middleware\ValidateSignature;
@@ -140,6 +141,10 @@ Route::name('shop.')->group(function () {
         ->scopeBindings()->name('help.article');
 
     Route::get('/pages/{page:slug}', [\App\Http\Controllers\Shop\PageController::class, 'show'])->name('page');
+
+    // Public API reference for this install (served by every deployment).
+    Route::get('/docs', [DocsController::class, 'index'])->name('docs');
+    Route::get('/docs/openapi.json', [DocsController::class, 'openapi'])->name('docs.openapi');
 
     // Request Service — the public intake front door. Captcha + throttle since
     // it is an anonymous, mail-generating surface.

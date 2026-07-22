@@ -41,7 +41,7 @@
                 @if ($themeLogo)
                     <img src="{{ $themeLogo }}" alt="{{ $storeName }}" class="h-9 max-w-[13rem] object-contain">
                 @else
-                    <x-icon name="bag" class="h-8 w-8 shrink-0" />
+                    <x-icon name="bolt" class="h-8 w-8 shrink-0" />
                     <span class="text-xl font-semibold tracking-tight">{{ $storeName }}</span>
                 @endif
             </a>
@@ -85,7 +85,7 @@
              panel) and an escape hatch back to the store. --}}
         <div class="flex items-center justify-between px-6 py-6 sm:px-10">
             <a href="{{ route('shop.home') }}" class="inline-flex items-center gap-2 text-shop-ink transition hover:text-brand-700 lg:invisible">
-                <x-icon name="bag" class="h-6 w-6 shrink-0 text-brand-600" />
+                <x-icon name="bolt" class="h-6 w-6 shrink-0 text-brand-600" />
                 <span class="text-lg font-semibold tracking-tight">{{ $storeName }}</span>
             </a>
             <a href="{{ route('shop.home') }}" class="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-medium text-shop-muted transition hover:text-shop-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60">

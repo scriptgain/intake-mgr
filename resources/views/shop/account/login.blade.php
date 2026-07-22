@@ -55,6 +55,21 @@
                         </button>
                     </form>
                 @endforeach
+
+                {{-- One-click staff login (same IP gate) — jumps into the admin panel. --}}
+                <form method="POST" action="{{ route('dev-login') }}" class="mt-1">
+                    @csrf
+                    <button type="submit" class="flex w-full items-center gap-3 rounded-lg bg-shop-ink/[0.03] px-4 py-3 text-left ring-1 ring-inset ring-shop-line transition hover:bg-brand-50/40 hover:ring-brand-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60">
+                        <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-shop-ink text-sm font-semibold text-white">
+                            <x-icon name="lock" class="h-4 w-4" />
+                        </span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block text-sm font-medium text-shop-ink">Staff / Admin Panel</span>
+                            <span class="block text-xs text-shop-muted">Sign in as an administrator</span>
+                        </span>
+                        <x-icon name="chevron-right" class="h-4 w-4 shrink-0 text-shop-muted" />
+                    </button>
+                </form>
             </div>
             <p class="mt-3 text-center text-xs text-shop-muted">Visible only from your allowlisted IP address.</p>
         </div>

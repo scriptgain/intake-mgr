@@ -218,6 +218,7 @@
                     <ul class="mt-4 space-y-2.5 text-sm text-shop-muted">
                         <li><a href="{{ route('shop.help') }}" class="hover:text-shop-ink transition">Help Center</a></li>
                         <li><a href="{{ route('shop.request') }}" class="hover:text-shop-ink transition">Request Service</a></li>
+                        <li><a href="{{ route('shop.docs') }}" class="hover:text-shop-ink transition">API Docs</a></li>
                         @if (config('shop.store_email'))
                             <li><a href="mailto:{{ config('shop.store_email') }}" class="hover:text-shop-ink transition">Contact Us</a></li>
                         @endif
