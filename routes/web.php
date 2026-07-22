@@ -5,12 +5,17 @@ use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DiscountController;
 use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\AvailabilityController;
+use App\Http\Controllers\Admin\BookingTypeController;
+use App\Http\Controllers\Admin\CalendarConnectionController;
+use App\Http\Controllers\Admin\CalendarSettingsController;
 use App\Http\Controllers\Admin\PaymentSettingsController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\ServiceRequestController;
 use App\Http\Controllers\Admin\TicketController;
 use App\Http\Controllers\Admin\WorkOrderController;
+use App\Http\Controllers\CalendarFeedController;
 use App\Http\Controllers\Admin\ShippingController;
 use App\Http\Controllers\Admin\SpamProtectionController;
 use App\Http\Controllers\Admin\StorefrontSettingsController;
@@ -74,6 +79,13 @@ Route::middleware('guest')->group(function () {
         ->name('demo-login.staff')->middleware('throttle:10,1');
 });
 Route::get('/magic/{user}', [AuthController::class, 'magic'])->name('magic-login')->middleware('signed');
+
+/*
+ * Per-staff calendar subscription feed. The unguessable token IS the credential
+ * (like a webcal subscription URL), so no session/auth — Apple/Google/Outlook
+ * fetch it unauthenticated. Served as text/calendar.
+ */
+Route::get('/calendar/feed/{token}.ics', [CalendarFeedController::class, 'feed'])->name('calendar.feed');
 Route::get('/2fa', [AuthController::class, 'challenge'])->name('2fa.challenge');
 Route::post('/2fa', [AuthController::class, 'challengeVerify'])->middleware('throttle:10,1');
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
@@ -222,6 +234,7 @@ Route::name('shop.')->group(function () {
             ->middleware('throttle:20,1')->name('account.ticket.reply');
         Route::get('/account/work-orders', [AccountController::class, 'workOrders'])->name('account.work-orders');
         Route::get('/account/work-orders/{workOrder:number}', [AccountController::class, 'workOrder'])->name('account.work-order');
+        Route::get('/account/work-orders/{workOrder:number}/calendar.ics', [AccountController::class, 'workOrderIcs'])->name('account.work-order.ics');
         Route::post('/account/work-orders/{workOrder:number}/reschedule', [AccountController::class, 'rescheduleWorkOrder'])->name('account.work-order.reschedule');
         Route::post('/account/work-orders/{workOrder:number}/cancel', [AccountController::class, 'cancelWorkOrder'])->name('account.work-order.cancel');
         Route::get('/account/invoices', [AccountController::class, 'invoices'])->name('account.invoices');
@@ -298,6 +311,24 @@ Route::prefix('admin')->middleware(['auth', 'security.policy'])->group(function 
     Route::post('projects/{project}/status', [ProjectController::class, 'status'])->name('projects.status');
     Route::resource('projects', ProjectController::class);
 
+    /* ---- Scheduling: booking types ---- */
+    Route::delete('booking-types/bulk', [BookingTypeController::class, 'bulkDestroy'])->name('booking-types.bulk-destroy');
+    Route::resource('booking-types', BookingTypeController::class)->parameters(['booking-types' => 'bookingType']);
+
+    /* ---- Scheduling: per-staff availability ---- */
+    Route::get('availability', [AvailabilityController::class, 'index'])->name('availability.index');
+    Route::get('availability/{user}', [AvailabilityController::class, 'edit'])->name('availability.edit');
+    Route::put('availability/{user}', [AvailabilityController::class, 'update'])->name('availability.update');
+
+    /* ---- My Calendar: per-staff calendar connections + sync ---- */
+    Route::get('calendar', [CalendarConnectionController::class, 'index'])->name('calendar.index');
+    Route::get('calendar/connect/{provider}', [CalendarConnectionController::class, 'connect'])->name('calendar.connect');
+    Route::get('calendar/callback/{provider}', [CalendarConnectionController::class, 'callback'])->name('calendar.callback');
+    Route::post('calendar/apple', [CalendarConnectionController::class, 'connectApple'])->name('calendar.apple');
+    Route::delete('calendar/connections/{connection}', [CalendarConnectionController::class, 'disconnect'])->name('calendar.disconnect');
+    Route::post('calendar/sync', [CalendarConnectionController::class, 'sync'])->name('calendar.sync');
+    Route::get('work-orders/{workOrder}/calendar.ics', [CalendarFeedController::class, 'workOrderIcs'])->name('work-orders.ics');
+
     /* ---- Customers ---- */
     Route::delete('customers/bulk', [CustomerController::class, 'bulkDestroy'])->name('customers.bulk-destroy');
     Route::resource('customers', CustomerController::class)->except(['create', 'store']);
@@ -367,6 +398,11 @@ Route::prefix('admin')->middleware(['auth', 'security.policy'])->group(function 
     Route::put('settings/payments', [PaymentSettingsController::class, 'update'])->name('settings.payments.update');
     Route::post('settings/payments/test', [PaymentSettingsController::class, 'test'])->name('settings.payments.test');
     Route::post('settings/payments/test-authnet', [PaymentSettingsController::class, 'testAuthnet'])->name('settings.payments.test-authnet');
+
+    /* ---- Calendar sync provider configuration ---- */
+    Route::get('settings/calendar', [CalendarSettingsController::class, 'edit'])->name('settings.calendar.edit');
+    Route::put('settings/calendar', [CalendarSettingsController::class, 'update'])->name('settings.calendar.update');
+    Route::post('settings/calendar/test/{provider}', [CalendarSettingsController::class, 'test'])->name('settings.calendar.test');
     Route::get('settings/seo', [\App\Http\Controllers\Admin\SeoSettingsController::class, 'edit'])->name('settings.seo.edit');
     Route::put('settings/seo', [\App\Http\Controllers\Admin\SeoSettingsController::class, 'update'])->name('settings.seo.update');
     Route::get('settings/spam', [SpamProtectionController::class, 'edit'])->name('settings.spam.edit');

@@ -14,6 +14,7 @@
 
         <x-slot:actions>
             <x-button variant="secondary" size="sm" icon="edit" href="{{ route('work-orders.edit', $workOrder) }}">Edit</x-button>
+            <x-add-to-calendar :work-order="$workOrder" :ics-url="route('work-orders.ics', $workOrder)" />
             @if ($workOrder->status !== 'cancelled')
                 <x-button variant="secondary" size="sm" icon="x-circle" x-data @click="$dispatch('open-modal', 'cancel-work-order')">Cancel</x-button>
             @endif

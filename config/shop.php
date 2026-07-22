@@ -15,11 +15,13 @@ return [
     'max_width' => env('SHOP_MAX_WIDTH', 'max-w-7xl'),
 
     // Storefront identity (Settings -> Storefront overrides all of these).
-    'store_name' => 'Your Store',
-    'store_tagline' => 'Thoughtfully Made Goods',
+    'store_name' => 'IntakeMGR',
+    'store_tagline' => 'Local Service, Handled',
     'store_email' => null,
     'store_phone' => null,
     'store_address' => null,
+    // Business default timezone for scheduling/availability (per-staff can override).
+    'timezone' => env('SHOP_TIMEZONE', 'America/Phoenix'),
 
     // Money. ShopMGR stores every amount as an integer in the currency's minor
     // unit (cents) to avoid float drift; `currency_decimals` drives display.

@@ -36,12 +36,13 @@
                                 @endif
                             </div>
                         </div>
-                        @if ($workOrder->is_changeable)
-                            <div class="flex items-center gap-2">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <x-add-to-calendar :work-order="$workOrder" :ics-url="route('account.work-order.ics', $workOrder)" />
+                            @if ($workOrder->is_changeable)
                                 <x-button variant="secondary" size="sm" icon="clock" x-data @click="$dispatch('open-modal', 'reschedule-wo')">Reschedule</x-button>
                                 <x-button variant="secondary" size="sm" icon="x-circle" x-data @click="$dispatch('open-modal', 'cancel-wo')">Cancel</x-button>
-                            </div>
-                        @endif
+                            @endif
+                        </div>
                     </div>
 
                     @if ($workOrder->notes)

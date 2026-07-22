@@ -78,6 +78,17 @@ class App extends Component
             ],
             [
                 'type' => 'group',
+                'label' => 'Scheduling',
+                'icon' => 'clock',
+                'active' => request()->routeIs('booking-types.*', 'availability.*', 'calendar.*'),
+                'items' => [
+                    ['Booking Types', route('booking-types.index'), 'clock', request()->routeIs('booking-types.*')],
+                    ['Availability', route('availability.index'), 'users', request()->routeIs('availability.*')],
+                    ['My Calendar', route('calendar.index'), 'refresh', request()->routeIs('calendar.*')],
+                ],
+            ],
+            [
+                'type' => 'group',
                 'label' => 'Billing',
                 'icon' => 'credit-card',
                 'active' => request()->routeIs('orders.*', 'customers.*', 'discounts.*'),
@@ -168,6 +179,9 @@ class App extends Component
             'tickets' => ['Tickets', 'tickets.index'],
             'work-orders' => ['Work Orders', 'work-orders.index'],
             'projects' => ['Projects', 'projects.index'],
+            'booking-types' => ['Booking Types', 'booking-types.index'],
+            'availability' => ['Availability', 'availability.index'],
+            'calendar' => ['My Calendar', 'calendar.index'],
             'themes' => ['Themes', 'themes.index'],
             'templates' => ['Templates', 'templates.index'],
             'help-categories' => ['Help Categories', 'help-categories.index'],

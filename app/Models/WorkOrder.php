@@ -78,6 +78,20 @@ class WorkOrder extends Model
         return $this->morphMany(Attachment::class, 'attachable')->latest();
     }
 
+    /**
+     * Mirror scheduling changes onto the assignee's connected calendars.
+     * Best-effort and dirty-guarded; a no-op when the assignee has no
+     * connections (so it costs one cheap query during seeding/imports).
+     */
+    protected static function booted(): void
+    {
+        static::saved(function (WorkOrder $workOrder) {
+            if ($workOrder->wasChanged(['scheduled_at', 'status', 'assigned_user_id', 'title', 'duration_minutes', 'address'])) {
+                rescue(fn () => app(\App\Services\Calendar\CalendarSync::class)->pushWorkOrder($workOrder), null, false);
+            }
+        });
+    }
+
     /** Recompute the money rollup from line items. */
     public function recalcTotals(): void
     {

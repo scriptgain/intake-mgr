@@ -49,7 +49,7 @@
             <div class="max-w-md py-14">
                 <p class="text-sm font-semibold uppercase tracking-[0.22em] text-white/70">{{ $storeName }} Account</p>
                 <h2 class="mt-4 text-4xl font-semibold leading-[1.1] tracking-tight text-white xl:text-5xl">
-                    Your orders, addresses, and reorders in one place.
+                    Your requests, work orders, and invoices, all in one place.
                 </h2>
                 <p class="mt-5 text-lg leading-relaxed text-white/80">
                     Sign in to track every order, breeze through checkout with saved details, and pick up right where you left off.
@@ -74,7 +74,7 @@
                 </ul>
             </div>
 
-            <p class="text-sm text-white/60">Trusted by shoppers for thoughtfully made goods.</p>
+            <p class="text-sm text-white/60">Trusted by neighbors for fast, reliable local service.</p>
         </div>
     </aside>
 

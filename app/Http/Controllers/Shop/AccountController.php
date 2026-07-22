@@ -316,6 +316,19 @@ class AccountController extends Controller
         ]);
     }
 
+    /** Add-to-Calendar download for a customer's own scheduled visit. */
+    public function workOrderIcs(WorkOrder $workOrder, \App\Services\Calendar\IcsBuilder $ics)
+    {
+        abort_unless($workOrder->customer_id === auth('customer')->id(), 404);
+
+        $workOrder->loadMissing(['customer', 'assignee']);
+
+        return response($ics->forWorkOrder($workOrder), 200, [
+            'Content-Type' => 'text/calendar; charset=utf-8',
+            'Content-Disposition' => 'attachment; filename="'.$workOrder->number.'.ics"',
+        ]);
+    }
+
     public function rescheduleWorkOrder(Request $request, WorkOrder $workOrder)
     {
         abort_unless($workOrder->customer_id === auth('customer')->id(), 404);

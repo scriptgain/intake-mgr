@@ -14,6 +14,9 @@
                 ['Shipping', 'Zones and the rates offered inside them.', 'truck', 'shipping.index', false],
                 ['Tax', 'Regional tax rules applied at checkout.', 'percent', 'taxes.index', false],
             ],
+            'Scheduling' => [
+                ['Calendar Sync', 'Connect Google, Microsoft, Apple, or Nylas for two-way calendar sync.', 'clock', 'settings.calendar.edit', false],
+            ],
             'Appearance' => [
                 ['Themes', 'Colour, typography, corners and spacing for the storefront.', 'star', 'themes.index', false],
                 ['Templates', 'Edit the real Blade behind any page. Validated before it goes live.', 'edit', 'templates.index', true],

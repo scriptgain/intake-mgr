@@ -68,7 +68,7 @@
                         @if ($themeLogo)
                             <img src="{{ $themeLogo }}" alt="{{ $storeName }}" class="h-8 max-w-[11rem] object-contain">
                         @else
-                            <x-icon name="bag" class="w-6 h-6 text-brand-600 shrink-0" />
+                            <x-icon name="bolt" class="w-6 h-6 text-brand-600 shrink-0" />
                             <span class="text-lg font-semibold tracking-tight text-shop-ink truncate max-w-[10rem] sm:max-w-none">{{ $storeName }}</span>
                         @endif
                     </a>
@@ -188,7 +188,7 @@
                 {{-- Brand + service CTA, the widest column --}}
                 <div class="min-w-0 lg:col-span-6">
                     <a href="{{ route('shop.home') }}" class="inline-flex items-center gap-2">
-                        <x-icon name="bag" class="w-6 h-6 shrink-0 text-brand-600" />
+                        <x-icon name="bolt" class="w-6 h-6 shrink-0 text-brand-600" />
                         <span class="text-lg font-semibold tracking-tight text-shop-ink">{{ $storeName }}</span>
                     </a>
                     <p class="mt-3 max-w-sm text-sm leading-relaxed text-shop-muted">{{ config('shop.store_tagline') }}</p>
