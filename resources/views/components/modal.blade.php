@@ -45,7 +45,7 @@
                 <x-icon name="x" class="w-5 h-5" />
             </button>
         </div>
-        <div class="vx-scroll flex-1 overflow-y-auto px-5 py-4 text-sm text-slate-600 leading-relaxed">
+        <div class="vx-wrap vx-scroll flex-1 overflow-y-auto overflow-x-hidden px-5 py-4 text-sm text-slate-600 leading-relaxed">
             {{ $slot }}
         </div>
         @isset($footer)
