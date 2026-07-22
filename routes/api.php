@@ -23,6 +23,15 @@ Route::post('stripe/webhook', \App\Http\Controllers\StripeWebhookController::cla
     ->middleware('throttle:120,1')
     ->name('stripe.webhook');
 
+/*
+ * Authorize.Net webhook. Same rationale as the Stripe one: API stack, no
+ * session/CSRF, no storefront gates. The X-ANET-Signature HMAC-SHA512 is the
+ * credential, verified inside the controller.
+ */
+Route::post('authnet/webhook', \App\Http\Controllers\AuthorizeNetWebhookController::class)
+    ->middleware('throttle:120,1')
+    ->name('authnet.webhook');
+
 // Merchant REST API. Bearer token (api_tokens) auth. Base: /api/v1
 // Route names are prefixed with "api." so they never collide with the web
 // resource route names (products.*, orders.*, customers.*).

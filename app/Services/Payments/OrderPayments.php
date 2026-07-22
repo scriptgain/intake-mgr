@@ -306,6 +306,62 @@ class OrderPayments
         return $fresh;
     }
 
+    /**
+     * Provider-neutral paid transition, for gateways that charge server-side
+     * (Authorize.Net Accept.js) rather than being confirmed by Stripe. Same
+     * idempotent row-lock + re-read guard as markPaid, so a webhook and the
+     * synchronous charge response cannot both settle the order twice.
+     *
+     * @param array{brand?:string,last4?:string} $card
+     */
+    public static function recordExternalPayment(Order $order, string $provider, string $reference, array $card = [], bool $livemode = false): Order
+    {
+        $didTransition = false;
+
+        DB::transaction(function () use ($order, $provider, $reference, $card, $livemode, &$didTransition) {
+            /** @var Order|null $locked */
+            $locked = Order::whereKey($order->getKey())->lockForUpdate()->first();
+
+            if (! $locked || $locked->is_paid) {
+                return;
+            }
+
+            $locked->forceFill(array_filter([
+                'financial_status' => 'paid',
+                'paid_at' => now(),
+                'payment_gateway' => $provider,
+                'payment_provider' => $provider,
+                'payment_reference' => $reference,
+                'authnet_transaction_id' => $provider === 'authorizenet' ? $reference : null,
+                'card_brand' => $card['brand'] ?? null,
+                'card_last4' => $card['last4'] ?? null,
+                'livemode' => $livemode,
+                'payment_failure_reason' => null,
+            ], fn ($v) => $v !== null))->save();
+
+            $didTransition = true;
+            $order->setRawAttributes($locked->getAttributes(), true);
+        });
+
+        $fresh = $order->fresh();
+
+        if (! $didTransition) {
+            return $fresh;
+        }
+
+        $fresh->recordEvent('paid', 'Payment Received', array_filter([
+            'gateway' => $fresh->payment_provider,
+            'reference' => $fresh->payment_reference,
+            'card' => $fresh->card_brand ? $fresh->card_brand.' ****'.$fresh->card_last4 : null,
+            'livemode' => $fresh->livemode,
+        ]), null);
+
+        rescue(fn () => $fresh->customer?->refreshTotals(), null, false);
+        rescue(fn () => OrderMailer::sendForPaidOrder($fresh), null, false);
+
+        return $fresh;
+    }
+
     public static function markFailed(Order $order, ?string $reason = null): Order
     {
         // A late failure event must never undo a success. Stripe can emit a

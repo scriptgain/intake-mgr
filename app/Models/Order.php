@@ -72,6 +72,17 @@ class Order extends Model
         return $this->belongsTo(Customer::class);
     }
 
+    /** The work order this invoice settles, if it was generated from one. */
+    public function workOrder(): BelongsTo
+    {
+        return $this->belongsTo(WorkOrder::class, 'work_order_id');
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class, 'project_id');
+    }
+
     /**
      * Allocate the next sequential order number inside a transaction, so two
      * simultaneous checkouts can never mint the same number.

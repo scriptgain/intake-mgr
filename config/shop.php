@@ -52,7 +52,7 @@ return [
         // 'manual' = offline/bank-transfer/COD; always available as a fallback
         // so a fresh install can take an order before any gateway is wired.
         'default_gateway' => 'manual',
-        'gateways' => ['manual', 'stripe'],
+        'gateways' => ['manual', 'stripe', 'authorizenet'],
         // Stripe runs in test mode until a live key is saved in Settings.
         'stripe_mode' => 'test',
     ],

@@ -7,6 +7,10 @@ use App\Http\Controllers\Admin\DiscountController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\PaymentSettingsController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\ProjectController;
+use App\Http\Controllers\Admin\ServiceRequestController;
+use App\Http\Controllers\Admin\TicketController;
+use App\Http\Controllers\Admin\WorkOrderController;
 use App\Http\Controllers\Admin\ShippingController;
 use App\Http\Controllers\Admin\SpamProtectionController;
 use App\Http\Controllers\Admin\StorefrontSettingsController;
@@ -29,6 +33,7 @@ use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\CatalogController;
 use App\Http\Controllers\Shop\CheckoutController;
 use App\Http\Controllers\Shop\PaymentController;
+use App\Http\Controllers\Shop\ServiceRequestController as ServiceRequestIntakeController;
 use Illuminate\Routing\Middleware\ValidateSignature;
 use App\Http\Controllers\Shop\RobotsController;
 use App\Http\Controllers\Shop\SitemapController;
@@ -124,7 +129,11 @@ Route::name('shop.')->group(function () {
 
     Route::get('/pages/{page:slug}', [\App\Http\Controllers\Shop\PageController::class, 'show'])->name('page');
 
-    // Public release notes (merchant-managed).
+    // Request Service — the public intake front door. Captcha + throttle since
+    // it is an anonymous, mail-generating surface.
+    Route::get('/request', [ServiceRequestIntakeController::class, 'create'])->name('request');
+    Route::post('/request', [ServiceRequestIntakeController::class, 'store'])
+        ->middleware(['throttle:10,1', 'captcha:service_request'])->name('request.store');
 
     // Cart.
     Route::get('/cart', [CartController::class, 'show'])->name('cart');
@@ -161,6 +170,14 @@ Route::name('shop.')->group(function () {
         ->middleware(ValidateSignature::absolute(['payment_intent', 'payment_intent_client_secret', 'redirect_status']))
         ->name('checkout.return');
 
+    /*
+     * Authorize.Net on-site charge. Accept.js tokenises the card in the browser
+     * and posts ONLY the opaque nonce here; the amount is the order's server
+     * total, never the request. Signed, same as the card page.
+     */
+    Route::post('/checkout/{order:number}/authnet-charge', [PaymentController::class, 'authnetCharge'])
+        ->middleware('signed')->name('checkout.authnet-charge');
+
     // Signed so a guest reaches their confirmation without an account, but the
     // URL cannot be walked to read someone else's order.
     Route::get('/orders/{order:number}/confirmation', [CheckoutController::class, 'confirmation'])
@@ -193,6 +210,22 @@ Route::name('shop.')->group(function () {
         Route::post('/account/addresses', [AccountController::class, 'storeAddress'])->name('account.addresses.store');
         Route::put('/account/addresses/{address}', [AccountController::class, 'updateAddress'])->name('account.addresses.update');
         Route::delete('/account/addresses/{address}', [AccountController::class, 'destroyAddress'])->name('account.addresses.destroy');
+
+        // Service-desk portal: the customer's own requests, tickets, work
+        // orders and invoices. Every action re-checks ownership in the
+        // controller (customer_id === auth id -> 404), never trusting binding.
+        Route::get('/account/requests', [AccountController::class, 'requests'])->name('account.requests');
+        Route::get('/account/requests/{serviceRequest:number}', [AccountController::class, 'request'])->name('account.request');
+        Route::get('/account/tickets', [AccountController::class, 'tickets'])->name('account.tickets');
+        Route::get('/account/tickets/{ticket:number}', [AccountController::class, 'ticket'])->name('account.ticket');
+        Route::post('/account/tickets/{ticket:number}/reply', [AccountController::class, 'replyTicket'])
+            ->middleware('throttle:20,1')->name('account.ticket.reply');
+        Route::get('/account/work-orders', [AccountController::class, 'workOrders'])->name('account.work-orders');
+        Route::get('/account/work-orders/{workOrder:number}', [AccountController::class, 'workOrder'])->name('account.work-order');
+        Route::post('/account/work-orders/{workOrder:number}/reschedule', [AccountController::class, 'rescheduleWorkOrder'])->name('account.work-order.reschedule');
+        Route::post('/account/work-orders/{workOrder:number}/cancel', [AccountController::class, 'cancelWorkOrder'])->name('account.work-order.cancel');
+        Route::get('/account/invoices', [AccountController::class, 'invoices'])->name('account.invoices');
+
         Route::post('/account/logout', [AccountController::class, 'logout'])->name('account.logout');
     });
 });
@@ -234,6 +267,36 @@ Route::prefix('admin')->middleware(['auth', 'security.policy'])->group(function 
     Route::post('orders/{order}/resend-email', [OrderController::class, 'resendEmail'])->name('orders.resend-email');
     Route::post('orders/{order}/cancel', [OrderController::class, 'cancel'])->name('orders.cancel');
     Route::post('orders/{order}/note', [OrderController::class, 'note'])->name('orders.note');
+
+    /* ---- Service Desk: intake requests ---- */
+    Route::delete('service-requests/bulk', [ServiceRequestController::class, 'bulkDestroy'])->name('service-requests.bulk-destroy');
+    Route::get('service-requests', [ServiceRequestController::class, 'index'])->name('service-requests.index');
+    Route::get('service-requests/{serviceRequest}', [ServiceRequestController::class, 'show'])->name('service-requests.show');
+    Route::post('service-requests/{serviceRequest}/convert-ticket', [ServiceRequestController::class, 'convertToTicket'])->name('service-requests.convert-ticket');
+    Route::post('service-requests/{serviceRequest}/convert-work-order', [ServiceRequestController::class, 'convertToWorkOrder'])->name('service-requests.convert-work-order');
+    Route::post('service-requests/{serviceRequest}/close', [ServiceRequestController::class, 'close'])->name('service-requests.close');
+
+    /* ---- Service Desk: tickets ---- */
+    Route::delete('tickets/bulk', [TicketController::class, 'bulkDestroy'])->name('tickets.bulk-destroy');
+    Route::get('tickets', [TicketController::class, 'index'])->name('tickets.index');
+    Route::get('tickets/{ticket}', [TicketController::class, 'show'])->name('tickets.show');
+    Route::post('tickets/{ticket}/reply', [TicketController::class, 'reply'])->name('tickets.reply');
+    Route::post('tickets/{ticket}/status', [TicketController::class, 'status'])->name('tickets.status');
+    Route::post('tickets/{ticket}/assign', [TicketController::class, 'assign'])->name('tickets.assign');
+    Route::post('tickets/{ticket}/work-order', [TicketController::class, 'workOrder'])->name('tickets.work-order');
+    Route::delete('tickets/{ticket}', [TicketController::class, 'destroy'])->name('tickets.destroy');
+
+    /* ---- Service Desk: work orders ---- */
+    Route::delete('work-orders/bulk', [WorkOrderController::class, 'bulkDestroy'])->name('work-orders.bulk-destroy');
+    Route::post('work-orders/{workOrder}/status', [WorkOrderController::class, 'status'])->name('work-orders.status');
+    Route::post('work-orders/{workOrder}/complete', [WorkOrderController::class, 'complete'])->name('work-orders.complete');
+    Route::post('work-orders/{workOrder}/cancel', [WorkOrderController::class, 'cancel'])->name('work-orders.cancel');
+    Route::resource('work-orders', WorkOrderController::class)->parameters(['work-orders' => 'workOrder']);
+
+    /* ---- Service Desk: projects ---- */
+    Route::delete('projects/bulk', [ProjectController::class, 'bulkDestroy'])->name('projects.bulk-destroy');
+    Route::post('projects/{project}/status', [ProjectController::class, 'status'])->name('projects.status');
+    Route::resource('projects', ProjectController::class);
 
     /* ---- Customers ---- */
     Route::delete('customers/bulk', [CustomerController::class, 'bulkDestroy'])->name('customers.bulk-destroy');
@@ -303,6 +366,7 @@ Route::prefix('admin')->middleware(['auth', 'security.policy'])->group(function 
     Route::get('settings/payments', [PaymentSettingsController::class, 'edit'])->name('settings.payments.edit');
     Route::put('settings/payments', [PaymentSettingsController::class, 'update'])->name('settings.payments.update');
     Route::post('settings/payments/test', [PaymentSettingsController::class, 'test'])->name('settings.payments.test');
+    Route::post('settings/payments/test-authnet', [PaymentSettingsController::class, 'testAuthnet'])->name('settings.payments.test-authnet');
     Route::get('settings/seo', [\App\Http\Controllers\Admin\SeoSettingsController::class, 'edit'])->name('settings.seo.edit');
     Route::put('settings/seo', [\App\Http\Controllers\Admin\SeoSettingsController::class, 'update'])->name('settings.seo.update');
     Route::get('settings/spam', [SpamProtectionController::class, 'edit'])->name('settings.spam.edit');

@@ -72,6 +72,20 @@ class PaymentSettingsController extends Controller
             'gateways' => [
                 'manual' => 'Manual / Offline Payment',
                 'stripe' => 'Stripe',
+                'authorizenet' => 'Authorize.Net',
+            ],
+
+            // Authorize.Net, resolved here so the view stays markup-only.
+            'authnet' => [
+                'mode' => \App\Services\Payments\AuthorizeNetSettings::mode(),
+                'api_login_id' => Setting::get('authnet_api_login_id', ''),
+                'public_client_key' => Setting::get('authnet_public_client_key', ''),
+                'has_transaction_key' => filled(Setting::get('authnet_transaction_key')),
+                'has_signature_key' => filled(Setting::get('authnet_signature_key')),
+                'configured' => \App\Services\Payments\AuthorizeNetSettings::isConfigured(),
+                'enabled' => \App\Services\Payments\AuthorizeNetSettings::enabled(),
+                'switch_on' => \App\Services\Payments\AuthorizeNetSettings::switchIsOn(),
+                'webhook_url' => route('authnet.webhook'),
             ],
         ]);
     }
@@ -79,8 +93,16 @@ class PaymentSettingsController extends Controller
     public function update(Request $request)
     {
         $data = $request->validate([
-            'default_gateway' => ['required', Rule::in(['manual', 'stripe'])],
+            'default_gateway' => ['required', Rule::in(['manual', 'stripe', 'authorizenet'])],
             'stripe_mode' => ['required', Rule::in(['test', 'live'])],
+
+            // Authorize.Net. Sandbox vs production; the transaction key and
+            // signature key are secret (blank = leave unchanged).
+            'authnet_mode' => ['required', Rule::in(['sandbox', 'production'])],
+            'authnet_api_login_id' => ['nullable', 'string', 'max:255'],
+            'authnet_public_client_key' => ['nullable', 'string', 'max:255'],
+            'authnet_transaction_key' => ['nullable', 'string', 'max:255'],
+            'authnet_signature_key' => ['nullable', 'string', 'max:255'],
             'stripe_statement_descriptor' => ['nullable', 'string', 'max:22'],
             'manual_instructions' => ['nullable', 'string', 'max:2000'],
             'order_notify_email' => ['nullable', 'email', 'max:255'],
@@ -136,6 +158,19 @@ class PaymentSettingsController extends Controller
 
         Setting::put('stripe_enabled', $wantsStripe && PaymentSettings::isConfigured() ? '1' : '0');
 
+        // Authorize.Net: public fields always saved; the two secrets only when
+        // a replacement is actually typed (blank = leave the stored one).
+        Setting::put('authnet_mode', $data['authnet_mode']);
+        Setting::put('authnet_api_login_id', (string) ($data['authnet_api_login_id'] ?? ''));
+        Setting::put('authnet_public_client_key', (string) ($data['authnet_public_client_key'] ?? ''));
+        foreach (['authnet_transaction_key', 'authnet_signature_key'] as $secret) {
+            if (filled($request->input($secret))) {
+                Setting::put($secret, (string) $request->input($secret));
+            }
+        }
+        $wantsAuthnet = $request->boolean('authnet_enabled');
+        Setting::put('authnet_enabled', $wantsAuthnet && \App\Services\Payments\AuthorizeNetSettings::isConfigured() ? '1' : '0');
+
         // Mode changes are audited: test-to-live is the moment a store starts
         // taking real money, and that should be attributable.
         AuditLog::record('updated', 'Payment settings updated (mode: '.$data['stripe_mode'].')');
@@ -175,6 +210,24 @@ class PaymentSettingsController extends Controller
             ?? 'your Stripe account';
 
         return back()->with('status', 'Connected to '.$name.' in '.PaymentSettings::mode().' mode.');
+    }
+
+    /** Prove the stored Authorize.Net credentials actually authenticate. */
+    public function testAuthnet()
+    {
+        if (! \App\Services\Payments\AuthorizeNetSettings::isConfigured()) {
+            return back()->withErrors(['authnet' => 'Set an API Login ID and a Transaction Key first.']);
+        }
+
+        $result = app(\App\Services\Payments\AuthorizeNetClient::class)->authenticateTest();
+
+        if (! ($result['ok'] ?? false)) {
+            return back()->withErrors([
+                'authnet' => 'Authorize.Net rejected those credentials: '.\App\Services\Payments\OrderPayments::redact($result['error'] ?? 'unknown error'),
+            ]);
+        }
+
+        return back()->with('status', 'Connected to Authorize.Net in '.\App\Services\Payments\AuthorizeNetSettings::mode().' mode.');
     }
 
     /** One of: disabled, not_configured, ready_test, ready_live. */

@@ -5,24 +5,7 @@
         <p class="mt-2 text-shop-muted">Manage your orders, profile, and saved addresses.</p>
     </section>
 
-    <section class="{{ $maxWidth }} mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between gap-4 border-b border-shop-line mb-8">
-            <div class="flex items-center gap-1 overflow-x-auto no-scrollbar">
-                @foreach ([['Orders', 'shop.account', 'bag'], ['Profile', 'shop.account.profile', 'user'], ['Addresses', 'shop.account.addresses', 'home']] as [$label, $routeName, $icon])
-                    @php $active = request()->routeIs($routeName); @endphp
-                    <a href="{{ route($routeName) }}" class="inline-flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 -mb-px shrink-0 transition {{ $active ? 'border-brand-600 text-brand-700' : 'border-transparent text-shop-muted hover:text-shop-ink' }}">
-                        <x-icon :name="$icon" class="w-4 h-4" /> {{ $label }}
-                    </a>
-                @endforeach
-            </div>
-            <form method="POST" action="{{ route('shop.account.logout') }}" class="shrink-0 mb-2">
-                @csrf
-                <button type="submit" class="inline-flex items-center gap-1.5 text-sm font-medium text-shop-muted hover:text-rose-600 transition">
-                    <x-icon name="x-circle" class="w-4 h-4" /> Sign Out
-                </button>
-            </form>
-        </div>
-    </section>
+    <x-account-tabs />
 
     <section class="{{ $maxWidth }} mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         <div class="flex items-center justify-between gap-4 mb-6">

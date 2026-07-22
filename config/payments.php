@@ -26,6 +26,15 @@ return [
         'webhook_tolerance' => 300,
     ],
 
+    // Authorize.Net transport. Credentials live in the settings table
+    // (Settings -> Payments), never here. On-site Accept.js tokenises the card
+    // in the browser; the opaque nonce is charged server-side.
+    'authnet' => [
+        'sandbox_uri' => 'https://apitest.authorize.net/xml/v1/request.api',
+        'production_uri' => 'https://api.authorize.net/xml/v1/request.api',
+        'timeout' => 20,
+    ],
+
     // Stripe rejects card charges below this in USD. Checked before we bother
     // creating an intent so the shopper gets a sentence, not a gateway error.
     'minimum_charge_cents' => 50,

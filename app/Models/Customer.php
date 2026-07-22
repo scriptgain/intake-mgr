@@ -63,6 +63,26 @@ class Customer extends Authenticatable implements CanResetPasswordContract
         return $this->hasMany(CustomerAddress::class);
     }
 
+    public function serviceRequests(): HasMany
+    {
+        return $this->hasMany(ServiceRequest::class)->latest();
+    }
+
+    public function tickets(): HasMany
+    {
+        return $this->hasMany(Ticket::class)->latest();
+    }
+
+    public function workOrders(): HasMany
+    {
+        return $this->hasMany(WorkOrder::class)->latest();
+    }
+
+    public function projects(): HasMany
+    {
+        return $this->hasMany(Project::class)->latest();
+    }
+
     /* ---- Derived, view-ready ------------------------------------------ */
 
     public function getNameAttribute(): string

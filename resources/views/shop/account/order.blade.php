@@ -1,17 +1,19 @@
-<x-layouts.shop :title="'Order ' . $order->number">
+<x-layouts.shop :title="'Invoice ' . $order->number">
 
     <section class="{{ $maxWidth }} mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-6">
-        <a href="{{ route('shop.account') }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-shop-muted hover:text-shop-ink transition">
-            <x-icon name="chevron-left" class="w-4 h-4" /> Back To Orders
+        <a href="{{ route('shop.account.invoices') }}" class="inline-flex items-center gap-1.5 text-sm font-medium text-shop-muted hover:text-shop-ink transition">
+            <x-icon name="chevron-left" class="w-4 h-4" /> Back To Invoices
         </a>
         <div class="mt-4 flex flex-wrap items-center justify-between gap-4">
             <div>
-                <h1 class="text-3xl font-semibold tracking-tight text-shop-ink">Order {{ $order->number }}</h1>
-                <p class="mt-1 text-shop-muted">Placed {{ $order->created_at->format('F j, Y') }}</p>
+                <h1 class="text-3xl font-semibold tracking-tight text-shop-ink">Invoice {{ $order->number }}</h1>
+                <p class="mt-1 text-shop-muted">Issued {{ $order->created_at->format('F j, Y') }}</p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-3">
                 <x-badge :color="$order->financial_badge" dot>{{ \Illuminate\Support\Str::headline($order->financial_status) }}</x-badge>
-                <x-badge :color="$order->fulfillment_badge" dot>{{ \Illuminate\Support\Str::headline($order->fulfillment_status) }}</x-badge>
+                @if (($payUrl ?? null))
+                    <x-button href="{{ $payUrl }}" icon="credit-card">Pay Now</x-button>
+                @endif
             </div>
         </div>
     </section>
@@ -92,7 +94,10 @@
             </div>
 
             <div>
-                <x-card title="Order Summary">
+                <x-card title="Invoice Summary">
+                    @if (($payUrl ?? null))
+                        <x-button href="{{ $payUrl }}" icon="credit-card" class="w-full mb-4">Pay Now</x-button>
+                    @endif
                     <dl class="space-y-3 text-sm">
                         <div class="flex justify-between"><dt class="text-shop-muted">Subtotal</dt><dd class="tabular text-shop-ink">{{ $order->subtotal_formatted }}</dd></div>
                         @if ($order->discount_cents > 0)

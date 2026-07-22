@@ -4,26 +4,28 @@ namespace App\Http\Controllers\Shop;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
-use App\Services\Payments\OrderPayments;
-use App\Services\Payments\PaymentSettings;
+use App\Services\Payments\PaymentGatewayManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
 
 /**
- * The card step of checkout.
+ * The card step of paying an invoice.
  *
- * Split out of CheckoutController on purpose: the order already exists by the
- * time a shopper reaches here, so this controller only ever moves an existing
- * order between payment states. It never creates one, never prices one, and
- * never accepts an amount.
+ * Provider-agnostic: it resolves the order's gateway (Stripe or Authorize.Net)
+ * through PaymentGatewayManager and renders that provider's form. It never
+ * creates an order, never prices one, and never accepts an amount — the amount
+ * is always the order's server-computed total.
  *
- * Both pages are reached by a signed URL. That is what lets a guest with no
- * account get back to their own payment page after a 3D Secure bounce, while
- * making the URL useless to anyone who did not receive it: the order number is
- * in the path, so without a signature it would be trivially walkable.
+ * Every page is reached by a signed URL so a guest returns to their OWN payment
+ * page (e.g. after a 3D Secure bounce) while the order number in the path stays
+ * un-walkable by anyone who did not receive the link.
  */
 class PaymentController extends Controller
 {
+    public function __construct(private readonly PaymentGatewayManager $gateways)
+    {
+    }
+
     /** The card form. */
     public function show(Request $request, Order $order)
     {
@@ -32,46 +34,103 @@ class PaymentController extends Controller
         }
 
         if ($order->is_cancelled) {
-            return redirect()->route('shop.home')->with('warning', 'That order has been cancelled.');
+            return redirect()->route('shop.home')->with('warning', 'That invoice has been cancelled.');
         }
 
-        /*
-         * A refunded or voided order is finished. is_paid is false for both, so
-         * without this an old signed payment link would still render a card
-         * form and let someone pay for an order that has already been unwound.
-         */
         if (in_array($order->financial_status, ['refunded', 'voided'], true)) {
-            return redirect()->route('shop.home')->with('warning', 'That order is closed and cannot be paid.');
+            return redirect()->route('shop.home')->with('warning', 'That invoice is closed and cannot be paid.');
         }
 
-        // Creates the intent on first visit, reuses it on every reload, and
-        // re-asserts the amount against the order's server-computed total.
-        $secret = OrderPayments::clientSecretFor($order);
+        $gateway = $this->gateways->for($order);
 
-        // Already settled (webhook won the race while the page was loading).
-        if ($secret['settled']) {
+        // No card gateway enabled: render the manual "by arrangement" state.
+        if (! $gateway || ! $gateway->isEnabled()) {
+            return view('shop.payment', array_merge($this->baseView($order), [
+                'provider' => 'manual',
+                'paymentError' => null,
+            ]));
+        }
+
+        $start = $gateway->startPayment($order);
+
+        // Already settled (a webhook won the race while the page was loading).
+        if (! empty($start['settled'])) {
             return redirect($this->confirmationUrl($order->fresh()));
         }
 
-        return view('shop.payment', [
-            'order' => $order->fresh('items'),
-            'clientSecret' => $secret['client_secret'],
-            'publishableKey' => PaymentSettings::publishableKey(),
-            'paymentError' => $secret['error'],
-            'isTestMode' => PaymentSettings::isTestMode(),
-            'returnUrl' => $this->returnUrl($order),
-            'accent' => config('brand.accent', '#ea580c'),
-        ]);
+        $data = $start['data'] ?? [];
+
+        return view('shop.payment', array_merge($this->baseView($order), [
+            'provider' => $gateway->key(),
+            'paymentError' => $start['error'] ?? null,
+            'isTestMode' => (bool) ($data['test_mode'] ?? ($data['sandbox'] ?? false)),
+            // Stripe.
+            'clientSecret' => $data['client_secret'] ?? null,
+            'publishableKey' => $data['publishable_key'] ?? null,
+            // Authorize.Net.
+            'authnet' => $data,
+            'authnetChargeUrl' => $this->authnetChargeUrl($order),
+        ]));
     }
 
     /**
-     * Where Stripe sends the browser after confirmPayment, including after a
-     * 3D Secure challenge on the issuer's own domain.
-     *
-     * The query parameters Stripe appends are NOT trusted for anything. They are
-     * not read to decide the outcome: the order is re-synced from the Stripe API
-     * by its stored intent id, so a shopper who edits redirect_status=succeeded
-     * into the URL gets an unpaid order and a card form, not a free order.
+     * Authorize.Net on-site charge. Accept.js has tokenised the card in the
+     * browser; only the opaque nonce arrives here. The amount charged is the
+     * order's server total, never anything in this request. Answers JSON to the
+     * Accept.js fetch, or a redirect to a plain form post.
+     */
+    public function authnetCharge(Request $request, Order $order)
+    {
+        $wantsJson = $request->ajax() || $request->wantsJson();
+
+        if ($order->is_paid) {
+            $url = $this->confirmationUrl($order);
+
+            return $wantsJson ? response()->json(['ok' => true, 'redirect' => $url]) : redirect($url);
+        }
+
+        if ($order->is_cancelled || in_array($order->financial_status, ['refunded', 'voided'], true)) {
+            $msg = 'That invoice can no longer be paid.';
+
+            return $wantsJson
+                ? response()->json(['ok' => false, 'error' => $msg], 422)
+                : redirect()->route('shop.home')->with('warning', $msg);
+        }
+
+        $data = $request->validate([
+            'opaque_data_descriptor' => ['required', 'string', 'max:128'],
+            'opaque_data_value' => ['required', 'string', 'max:8192'],
+        ]);
+
+        $gateway = $this->gateways->get('authorizenet');
+
+        if (! $gateway || ! $gateway->isEnabled()) {
+            $msg = 'Card payments are not available right now.';
+
+            return $wantsJson
+                ? response()->json(['ok' => false, 'error' => $msg], 422)
+                : redirect($this->paymentUrl($order))->with('warning', $msg);
+        }
+
+        $result = $gateway->completePayment($order, $data);
+
+        if (! empty($result['settled'])) {
+            $url = $this->confirmationUrl($order->fresh());
+
+            return $wantsJson ? response()->json(['ok' => true, 'redirect' => $url]) : redirect($url);
+        }
+
+        $msg = $result['error'] ?: 'That payment did not complete. Please try again.';
+
+        return $wantsJson
+            ? response()->json(['ok' => false, 'error' => $msg], 422)
+            : redirect($this->paymentUrl($order))->with('warning', $msg);
+    }
+
+    /**
+     * Stripe's return_url. The query parameters Stripe appends are NOT trusted:
+     * the order is re-synced from the provider by its stored reference, so a
+     * hand-edited redirect_status achieves nothing.
      */
     public function return(Request $request, Order $order)
     {
@@ -79,19 +138,13 @@ class PaymentController extends Controller
             return redirect($this->confirmationUrl($order));
         }
 
-        // Authoritative read from Stripe. The webhook may already have settled
-        // this; syncFromStripe and markPaid are both idempotent, so whichever
-        // path arrives second does nothing.
-        $order = OrderPayments::syncFromStripe($order);
+        $gateway = $this->gateways->for($order);
+        $order = $gateway ? $gateway->syncFromRemote($order) : $order;
 
         if ($order->is_paid) {
             return redirect($this->confirmationUrl($order));
         }
 
-        // Still in flight. Common with slower 3DS and bank redirects: Stripe has
-        // returned the browser before the intent finished processing. Send them
-        // to the confirmation page, which shows a pending state and reconciles
-        // itself; the webhook will finish the job.
         if ($order->financial_status === 'pending') {
             return redirect($this->confirmationUrl($order))
                 ->with('warning', 'Your payment is still being confirmed. This page will update once it completes.');
@@ -103,9 +156,29 @@ class PaymentController extends Controller
         );
     }
 
+    private function baseView(Order $order): array
+    {
+        return [
+            'order' => $order->fresh('items'),
+            'returnUrl' => $this->returnUrl($order),
+            'accent' => config('brand.accent', '#ea580c'),
+            // Provider-neutral defaults; show() overrides the ones its provider needs.
+            'clientSecret' => null,
+            'publishableKey' => null,
+            'isTestMode' => false,
+            'authnet' => [],
+            'authnetChargeUrl' => $this->authnetChargeUrl($order),
+        ];
+    }
+
     private function paymentUrl(Order $order): string
     {
         return URL::temporarySignedRoute('shop.checkout.payment', now()->addDay(), ['order' => $order->number]);
+    }
+
+    private function authnetChargeUrl(Order $order): string
+    {
+        return URL::temporarySignedRoute('shop.checkout.authnet-charge', now()->addDay(), ['order' => $order->number]);
     }
 
     private function returnUrl(Order $order): string
@@ -115,10 +188,6 @@ class PaymentController extends Controller
 
     private function confirmationUrl(Order $order): string
     {
-        return URL::temporarySignedRoute(
-            'shop.checkout.confirmation',
-            now()->addDays(30),
-            ['order' => $order->number]
-        );
+        return URL::temporarySignedRoute('shop.checkout.confirmation', now()->addDays(30), ['order' => $order->number]);
     }
 }

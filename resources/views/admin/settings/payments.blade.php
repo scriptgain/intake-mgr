@@ -162,6 +162,64 @@
             </div>
         </x-card>
 
+        <x-card title="Authorize.Net" subtitle="On-site card payments via Accept.js. Funds settle into your own Authorize.Net merchant account.">
+            <div class="space-y-5">
+                <x-toggle name="authnet_enabled" :checked="$checked('authnet_enabled')" label="Accept Cards Via Authorize.Net"
+                          description="Stays off until an API Login ID and Transaction Key are saved." />
+
+                @if ($errors->first('authnet'))
+                    <x-alert type="danger" title="Authorize.Net">{{ $errors->first('authnet') }}</x-alert>
+                @endif
+
+                <x-field label="Mode" for="authnet_mode" required :error="$errors->first('authnet_mode')"
+                         hint="Sandbox charges nothing and uses your sandbox credentials. Switch to Production to take real money.">
+                    <x-select id="authnet_mode" name="authnet_mode">
+                        <option value="sandbox" @selected($v('authnet_mode', $authnet['mode']) === 'sandbox')>Sandbox</option>
+                        <option value="production" @selected($v('authnet_mode', $authnet['mode']) === 'production')>Production</option>
+                    </x-select>
+                </x-field>
+
+                <x-field label="API Login ID" for="authnet_api_login_id" :error="$errors->first('authnet_api_login_id')">
+                    <input id="authnet_api_login_id" name="authnet_api_login_id" type="text" autocomplete="off"
+                           value="{{ $v('authnet_api_login_id', $authnet['api_login_id']) }}"
+                           class="block w-full rounded-lg border-0 bg-white px-3 py-2 text-sm text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500">
+                </x-field>
+
+                <x-field label="Public Client Key" for="authnet_public_client_key"
+                         hint="The Accept.js public client key (safe to expose in the browser)." :error="$errors->first('authnet_public_client_key')">
+                    <input id="authnet_public_client_key" name="authnet_public_client_key" type="text" autocomplete="off"
+                           value="{{ $v('authnet_public_client_key', $authnet['public_client_key']) }}"
+                           class="block w-full rounded-lg border-0 bg-white px-3 py-2 text-sm text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500">
+                </x-field>
+
+                <x-field label="Transaction Key" for="authnet_transaction_key"
+                         hint="Secret. Leave blank to keep the stored key." :error="$errors->first('authnet_transaction_key')">
+                    <div class="flex items-center gap-2">
+                        <input id="authnet_transaction_key" name="authnet_transaction_key" type="password" autocomplete="new-password"
+                               placeholder="{{ $authnet['has_transaction_key'] ? '•••••••• (stored)' : 'Not set' }}"
+                               class="block w-full rounded-lg border-0 bg-white px-3 py-2 text-sm text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500">
+                        @if ($authnet['has_transaction_key'])<x-badge color="success">Set</x-badge>@endif
+                    </div>
+                </x-field>
+
+                <x-field label="Signature Key" for="authnet_signature_key"
+                         hint="Secret. Used to verify webhooks (HMAC-SHA512). Leave blank to keep the stored key." :error="$errors->first('authnet_signature_key')">
+                    <div class="flex items-center gap-2">
+                        <input id="authnet_signature_key" name="authnet_signature_key" type="password" autocomplete="new-password"
+                               placeholder="{{ $authnet['has_signature_key'] ? '•••••••• (stored)' : 'Not set' }}"
+                               class="block w-full rounded-lg border-0 bg-white px-3 py-2 text-sm text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500">
+                        @if ($authnet['has_signature_key'])<x-badge color="success">Set</x-badge>@endif
+                    </div>
+                </x-field>
+
+                <div>
+                    <p class="text-sm font-medium text-slate-700">Webhook URL</p>
+                    <p class="mt-1 text-xs text-slate-500">Add this endpoint in the Authorize.Net dashboard (Account &rarr; Webhooks) for payment and refund events.</p>
+                    <p class="mt-2 break-all rounded-lg bg-white/70 px-3 py-2 font-mono text-xs text-slate-700 ring-1 ring-inset ring-slate-200">{{ $authnet['webhook_url'] }}</p>
+                </div>
+            </div>
+        </x-card>
+
         <x-card title="Manual / Offline Payment" subtitle="Always available as a fallback, so orders can be placed before any gateway is wired up.">
             <div class="space-y-5">
                 <x-toggle name="manual_enabled" :checked="$checked('manual_enabled', true)" label="Enabled" />
@@ -210,5 +268,14 @@
             <p class="text-sm text-slate-600">Calls Stripe with the saved {{ $mode }} secret key and reports which account answers.</p>
         </div>
         <x-button type="submit" variant="secondary" size="sm" icon="bolt">Test Stripe Keys</x-button>
+    </form>
+
+    <form method="POST" action="{{ route('settings.payments.test-authnet') }}" class="mt-3 flex items-center justify-between gap-4 rounded-xl bg-slate-50 px-4 py-3 ring-1 ring-inset ring-slate-200">
+        @csrf
+        <div class="min-w-0">
+            <p class="text-sm font-medium text-slate-900">Test The Connection</p>
+            <p class="text-sm text-slate-600">Calls Authorize.Net with the saved {{ $authnet['mode'] }} credentials and confirms they authenticate.</p>
+        </div>
+        <x-button type="submit" variant="secondary" size="sm" icon="bolt">Test Authorize.Net</x-button>
     </form>
 </x-layouts.app>

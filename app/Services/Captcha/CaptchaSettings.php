@@ -26,6 +26,7 @@ class CaptchaSettings
         'account_register' => true,
         'account_forgot' => true,
         'contact' => true,
+        'service_request' => true,  // the public intake form is an anon, mail-generating surface.
         'checkout' => false,   // OFF by default: a captcha on checkout costs orders.
     ];
 

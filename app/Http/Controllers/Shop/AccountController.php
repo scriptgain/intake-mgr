@@ -6,10 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\CustomerAddress;
 use App\Models\Order;
+use App\Models\ServiceRequest;
+use App\Models\Ticket;
+use App\Models\WorkOrder;
+use App\Notifications\WorkOrderCancelledByCustomer;
+use App\Notifications\WorkOrderRescheduleRequested;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -199,7 +207,221 @@ class AccountController extends Controller
 
         $order->load(['items', 'fulfillments']);
 
-        return view('shop.account.order', ['order' => $order]);
+        return view('shop.account.order', [
+            'order' => $order,
+            // A signed "Pay Now" link so an unpaid invoice can be settled from
+            // the portal; null when the invoice is already paid/cancelled.
+            'payUrl' => $this->payUrl($order),
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Service-desk portal (requests, tickets, work orders, invoices)
+    |--------------------------------------------------------------------------
+    | Every list method scopes to the signed-in customer; every detail method
+    | re-checks ownership against the auth id and 404s (never 403) so a record
+    | number cannot be walked to confirm it exists.
+    */
+
+    public function requests()
+    {
+        return view('shop.account.requests', [
+            'requests' => auth('customer')->user()->serviceRequests()->latest()->paginate(15),
+        ]);
+    }
+
+    public function request(ServiceRequest $serviceRequest)
+    {
+        abort_unless($serviceRequest->customer_id === auth('customer')->id(), 404);
+
+        $serviceRequest->load(['attachments', 'activities', 'service', 'ticket', 'workOrder']);
+
+        return view('shop.account.request', ['request' => $serviceRequest]);
+    }
+
+    public function tickets()
+    {
+        return view('shop.account.tickets', [
+            'tickets' => auth('customer')->user()->tickets()->latest()->paginate(15),
+        ]);
+    }
+
+    public function ticket(Ticket $ticket)
+    {
+        abort_unless($ticket->customer_id === auth('customer')->id(), 404);
+
+        // The customer thread never shows internal notes/attachments.
+        $ticket->load([
+            'replies' => fn ($q) => $q->where('is_internal', false),
+            'attachments' => fn ($q) => $q->where('is_internal', false),
+            'activities',
+        ]);
+
+        return view('shop.account.ticket', ['ticket' => $ticket]);
+    }
+
+    public function replyTicket(Request $request, Ticket $ticket)
+    {
+        abort_unless($ticket->customer_id === auth('customer')->id(), 404);
+
+        // A closed ticket is read-only from the portal; staff must reopen it.
+        if ($ticket->status === 'closed') {
+            return back()->with('warning', 'This ticket is closed. Please open a new request if you still need help.');
+        }
+
+        $data = $request->validate([
+            'body' => ['required', 'string', 'max:5000'],
+        ]);
+
+        $customer = auth('customer')->user();
+
+        $ticket->replies()->create([
+            'author_type' => 'customer',
+            'customer_id' => $customer->id,
+            'author_name' => $customer->name,
+            'body' => $data['body'],
+            'is_internal' => false,
+        ]);
+
+        $updates = ['last_reply_at' => now(), 'last_reply_by' => 'customer'];
+        // A reply on a resolved/closed ticket puts the ball back in staff's court.
+        if (in_array($ticket->status, ['resolved', 'closed'], true)) {
+            $updates['status'] = 'pending';
+        }
+        $ticket->forceFill($updates)->save();
+
+        $ticket->recordActivity('reply', 'Customer replied', [], null, $customer->name);
+
+        return back()->with('status', 'Your reply has been sent.');
+    }
+
+    public function workOrders()
+    {
+        return view('shop.account.work-orders', [
+            'workOrders' => auth('customer')->user()->workOrders()->latest()->paginate(15),
+        ]);
+    }
+
+    public function workOrder(WorkOrder $workOrder)
+    {
+        abort_unless($workOrder->customer_id === auth('customer')->id(), 404);
+
+        $workOrder->load(['items', 'invoice', 'activities', 'assignee', 'ticket']);
+
+        return view('shop.account.work-order', [
+            'workOrder' => $workOrder,
+            // Pay link only when a linked invoice exists and is still unpaid.
+            'payUrl' => $workOrder->invoice ? $this->payUrl($workOrder->invoice) : null,
+        ]);
+    }
+
+    public function rescheduleWorkOrder(Request $request, WorkOrder $workOrder)
+    {
+        abort_unless($workOrder->customer_id === auth('customer')->id(), 404);
+
+        if (! $workOrder->is_changeable) {
+            return back()->with('warning', 'This work order can no longer be changed. Please contact us for help.');
+        }
+
+        $data = $request->validate([
+            'preferred_at' => ['required', 'date', 'after:now'],
+        ]);
+
+        $customer = auth('customer')->user();
+        $preferred = Carbon::parse($data['preferred_at']);
+        $formatted = $preferred->format('F j, Y g:i A');
+
+        // A request, not an apply: scheduled_at is untouched until staff confirm.
+        $workOrder->recordActivity(
+            'note',
+            'Customer requested a new time: '.$formatted,
+            ['preferred_at' => $preferred->toDateTimeString()],
+            null,
+            $customer->name
+        );
+
+        $this->notifyStaff(new WorkOrderRescheduleRequested($workOrder, $preferred, $customer->name));
+
+        return back()->with('status', 'Your reschedule request has been sent. We will confirm the new time shortly.');
+    }
+
+    public function cancelWorkOrder(Request $request, WorkOrder $workOrder)
+    {
+        abort_unless($workOrder->customer_id === auth('customer')->id(), 404);
+
+        if (! $workOrder->is_changeable) {
+            return back()->with('warning', 'This work order can no longer be cancelled. Please contact us for help.');
+        }
+
+        $data = $request->validate([
+            'reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $customer = auth('customer')->user();
+
+        $workOrder->forceFill([
+            'status' => 'cancelled',
+            'cancelled_at' => now(),
+            'cancel_reason' => $data['reason'] ?? null,
+        ])->save();
+
+        $workOrder->recordActivity(
+            'cancelled',
+            'Cancelled by customer',
+            array_filter(['reason' => $data['reason'] ?? null]),
+            null,
+            $customer->name
+        );
+
+        $this->notifyStaff(new WorkOrderCancelledByCustomer($workOrder, $customer->name, $data['reason'] ?? null));
+
+        return back()->with('status', 'Your work order has been cancelled.');
+    }
+
+    public function invoices()
+    {
+        // Orders ARE the invoices in the service-desk model. Attach a signed
+        // "Pay Now" URL to each unpaid row so the view stays markup-only.
+        $invoices = auth('customer')->user()->orders()->latest()->paginate(15);
+        $invoices->getCollection()->each(fn (Order $o) => $o->pay_url = $this->payUrl($o));
+
+        return view('shop.account.invoices', ['invoices' => $invoices]);
+    }
+
+    /**
+     * A short-lived signed URL to the card page for an unpaid invoice, or null.
+     * The payment route is 'signed', so the link is what authorises the page.
+     */
+    private function payUrl(Order $order): ?string
+    {
+        if ($order->is_paid || $order->is_cancelled || (int) $order->total_cents <= 0) {
+            return null;
+        }
+
+        return URL::temporarySignedRoute('shop.checkout.payment', now()->addDay(), ['order' => $order->number]);
+    }
+
+    /** The store's notify address for staff-facing portal notifications. */
+    private function staffNotifyEmail(): ?string
+    {
+        return \App\Models\Setting::get('order_notify_email')
+            ?: \App\Models\Setting::get('store_email')
+            ?: config('shop.store_email');
+    }
+
+    /**
+     * Send a staff-facing portal notification to the store address, if one is
+     * configured. Wrapped so a mail failure never breaks the customer's action.
+     */
+    private function notifyStaff($notification): void
+    {
+        $to = $this->staffNotifyEmail();
+        if (! $to) {
+            return;
+        }
+
+        rescue(fn () => Notification::route('mail', $to)->notify($notification), null, false);
     }
 
     public function profile()
