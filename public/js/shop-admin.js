@@ -57,6 +57,8 @@
                 lastLabel: '',
                 points: [],   // {xPct, yPct, cents, date} for hover
                 hover: -1,
+                tipX: 0,      // viewport coords of the hovered point, so the
+                tipY: 0,      // tooltip can render fixed on <body>, unclippable.
 
                 init: function () {
                     var pts = this.series;
@@ -97,6 +99,9 @@
                     var rel = (event.clientX - rect.left) / rect.width;
                     var idx = Math.round(rel * (this.points.length - 1));
                     this.hover = Math.max(0, Math.min(this.points.length - 1, idx));
+                    var p = this.points[this.hover];
+                    this.tipX = rect.left + (p.xPct / 100) * rect.width;
+                    this.tipY = rect.top + (p.yPct / 100) * rect.height;
                 },
 
                 onLeave: function () { this.hover = -1; },

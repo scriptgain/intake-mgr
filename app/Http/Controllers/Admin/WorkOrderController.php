@@ -211,41 +211,17 @@ class WorkOrderController extends Controller
                 return null;
             }
 
-            $customer = $workOrder->customer;
-
-            $invoice = Order::create([
-                'number' => Order::nextNumber(),
-                'customer_id' => $workOrder->customer_id,
-                'email' => $customer?->email ?? '',
-                'phone' => $customer?->phone,
-                'status' => 'open',
-                'financial_status' => 'pending',
-                'fulfillment_status' => 'fulfilled',
-                'currency' => $workOrder->currency,
-                'subtotal_cents' => $workOrder->subtotal_cents,
-                'discount_cents' => 0,
-                'shipping_cents' => 0,
-                'tax_cents' => 0,
-                'total_cents' => $workOrder->subtotal_cents,
-                'payment_gateway' => Setting::get('default_gateway', 'stripe'),
-                'work_order_id' => $workOrder->id,
-                'project_id' => $workOrder->project_id,
-            ]);
-
-            foreach ($workOrder->items as $item) {
-                OrderItem::create([
-                    'order_id' => $invoice->id,
-                    'name' => $item->name,
-                    'quantity' => $item->quantity,
-                    'unit_price_cents' => $item->unit_price_cents,
-                    'total_cents' => $item->total_cents,
-                    'requires_shipping' => false,
-                ]);
-            }
+            $invoice = \App\Services\ServiceDesk\InvoiceBuilder::generate(
+                $workOrder,
+                array_filter([
+                    'work_order_id' => $workOrder->id,
+                    'project_id' => $workOrder->project_id,
+                ]),
+                'Work Order '.$workOrder->number
+            );
 
             $workOrder->forceFill(['invoice_order_id' => $invoice->id])->save();
 
-            $invoice->recordEvent('placed', 'Invoice Generated From Work Order '.$workOrder->number);
             $workOrder->recordActivity('payment', 'Invoice '.$invoice->number.' Generated', ['order_id' => $invoice->id]);
 
             return $invoice;

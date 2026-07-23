@@ -8,7 +8,7 @@
             <x-button variant="secondary" icon="star" href="{{ route('themes.index') }}">Themes</x-button>
         </x-slot:actions>
         <x-slot:primary>
-            <x-button variant="secondary" icon="external" href="{{ route('shop.home') }}" target="_blank" rel="noopener">View Store</x-button>
+            <x-button variant="secondary" icon="external" href="{{ route('shop.home') }}" target="_blank" rel="noopener">View Website</x-button>
         </x-slot:primary>
     </x-page-header>
 

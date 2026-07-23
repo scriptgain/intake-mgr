@@ -43,11 +43,15 @@
                         <span class="pointer-events-none absolute z-10 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-600 ring-2 ring-white shadow"
                               :style="`left:${points[hover].xPct}%;top:${points[hover].yPct}%`"></span>
                     </template>
-                    <template x-if="hover >= 0">
-                        <div class="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs text-white shadow-lg"
-                             :style="`left:clamp(2.5rem, ${points[hover].xPct}%, calc(100% - 2.5rem));top:calc(${points[hover].yPct}% - 0.6rem)`">
-                            <span class="font-semibold" x-text="money(points[hover].cents)"></span>
-                            <span class="ml-1.5 text-slate-300" x-text="points[hover].date"></span>
+                    {{-- Fixed-position tooltip teleported to <body> so no
+                         overflow-hidden ancestor (this card, the grid) can clip
+                         it. See the "tooltips never clipped" house rule. --}}
+                    <template x-teleport="body">
+                        <div x-show="hover >= 0" x-cloak
+                             class="pointer-events-none fixed z-50 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs text-white shadow-lg"
+                             :style="`left:${Math.min(Math.max(tipX, 44), window.innerWidth - 44)}px;top:${tipY - 10}px`">
+                            <span class="font-semibold" x-text="hover >= 0 ? money(points[hover].cents) : ''"></span>
+                            <span class="ml-1.5 text-slate-300" x-text="hover >= 0 ? points[hover].date : ''"></span>
                         </div>
                     </template>
                 </div>

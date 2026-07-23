@@ -7,6 +7,8 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Project;
+use App\Models\Quote;
+use App\Models\QuoteItem;
 use App\Models\ServiceRequest;
 use App\Models\Ticket;
 use App\Models\TicketReply;
@@ -42,6 +44,46 @@ class ServiceDeskDemoSeeder extends Seeder
         if ($secondary && $secondary->id !== $primary?->id && $secondary->tickets()->count() === 0) {
             $this->seedForTheo($secondary, $staff);
         }
+
+        // Quotes seed independently (added after the first release) so they
+        // populate an already-seeded sandbox too.
+        $quoteCustomer = $primary ?? $customers->get(0);
+        if ($quoteCustomer && $quoteCustomer->quotes()->count() === 0) {
+            $this->seedQuotes($quoteCustomer, $staff);
+        }
+    }
+
+    /** A sent quote awaiting the customer's decision, plus a draft. */
+    private function seedQuotes(Customer $c, ?User $staff): void
+    {
+        $now = now();
+
+        $sent = Quote::create([
+            'customer_id' => $c->id,
+            'created_by' => $staff?->id,
+            'title' => 'Pool Equipment Upgrade',
+            'message' => 'Here is the estimate for upgrading your pool pump and filter as we discussed. This quote is good for 30 days.',
+            'status' => 'sent',
+            'valid_until' => $now->copy()->addDays(30)->toDateString(),
+            'sent_at' => $now->copy()->subDays(2),
+        ]);
+        QuoteItem::create(['quote_id' => $sent->id, 'name' => 'Variable-Speed Pool Pump (Installed)', 'quantity' => 1, 'unit_price_cents' => 84000, 'total_cents' => 84000]);
+        QuoteItem::create(['quote_id' => $sent->id, 'name' => 'Cartridge Filter Replacement', 'quantity' => 1, 'unit_price_cents' => 32000, 'total_cents' => 32000]);
+        $sent->forceFill(['tax_cents' => 9280])->save();
+        $sent->recalcTotals();
+        $sent->recordActivity('created', 'Quote created', [], $staff?->id);
+        $sent->recordActivity('note', 'Quote Sent To Customer', [], $staff?->id);
+
+        $draft = Quote::create([
+            'customer_id' => $c->id,
+            'created_by' => $staff?->id,
+            'title' => 'Seasonal Maintenance Plan',
+            'message' => 'A year of scheduled maintenance visits, quoted monthly.',
+            'status' => 'draft',
+        ]);
+        QuoteItem::create(['quote_id' => $draft->id, 'name' => 'Seasonal Maintenance Visit', 'quantity' => 12, 'unit_price_cents' => 9900, 'total_cents' => 118800]);
+        $draft->recalcTotals();
+        $draft->recordActivity('created', 'Quote created', [], $staff?->id);
     }
 
     /** A small catalog of billable services. */

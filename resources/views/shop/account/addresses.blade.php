@@ -14,7 +14,9 @@
         </div>
 
         @if ($addresses->isEmpty())
-            <x-empty-state icon="home" title="No Saved Addresses" description="Add an address to speed up checkout next time." />
+            <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <x-empty-state icon="home" title="No Saved Addresses" description="Add an address so we know where to send a technician." />
+            </div>
         @else
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 @foreach ($addresses as $address)

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Quote;
 use App\Models\ServiceRequest;
 use App\Models\Ticket;
 use App\Models\WorkOrder;
@@ -74,6 +75,7 @@ class ServiceRequestController extends Controller
         return view('admin.service-requests.show', [
             'serviceRequest' => $serviceRequest,
             'addressLines' => $this->addressLines($serviceRequest->address),
+            'tabs' => $this->indexTabs(['status' => $serviceRequest->status]),
         ]);
     }
 
@@ -145,6 +147,32 @@ class ServiceRequestController extends Controller
         return redirect()
             ->route('work-orders.show', $workOrder)
             ->with('status', 'Work order '.$workOrder->number.' created from this request.');
+    }
+
+    /** Seed a draft quote from the request and open it for editing. */
+    public function convertToQuote(ServiceRequest $serviceRequest)
+    {
+        $quote = DB::transaction(function () use ($serviceRequest) {
+            $quote = Quote::create([
+                'customer_id' => $serviceRequest->customer_id,
+                'service_request_id' => $serviceRequest->id,
+                'created_by' => auth()->id(),
+                'title' => $serviceRequest->subject,
+                'message' => $serviceRequest->description,
+                'status' => 'draft',
+                'address' => $serviceRequest->address,
+                'currency' => config('shop.currency', 'USD'),
+            ]);
+
+            $quote->recordActivity('created', 'Created From Service Request '.$serviceRequest->number);
+            $serviceRequest->recordActivity('note', 'Quote '.$quote->number.' drafted from this request', ['quote_id' => $quote->id]);
+
+            return $quote;
+        });
+
+        return redirect()
+            ->route('quotes.edit', $quote)
+            ->with('status', 'Quote '.$quote->number.' drafted from this request. Add line items and send it.');
     }
 
     public function close(ServiceRequest $serviceRequest)

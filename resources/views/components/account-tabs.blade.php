@@ -8,6 +8,7 @@
         ['Overview', 'shop.account', 'dashboard', ['shop.account']],
         ['Requests', 'shop.account.requests', 'folder', ['shop.account.requests', 'shop.account.request']],
         ['Tickets', 'shop.account.tickets', 'envelope', ['shop.account.tickets', 'shop.account.ticket']],
+        ['Quotes', 'shop.account.quotes', 'document', ['shop.account.quotes', 'shop.account.quote']],
         ['Work Orders', 'shop.account.work-orders', 'clock', ['shop.account.work-orders', 'shop.account.work-order']],
         ['Invoices', 'shop.account.invoices', 'credit-card', ['shop.account.invoices', 'shop.account.order']],
         ['Profile', 'shop.account.profile', 'user', ['shop.account.profile']],

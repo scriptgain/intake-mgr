@@ -49,9 +49,9 @@
     {{-- Plain CSS (not Tailwind) so the purged build can't strip it. Vertical
          grouped menu; the layout places this in a sticky left column. --}}
     <style>
-        .settings-shell{display:grid;grid-template-columns:230px minmax(0,1fr);gap:1.5rem;align-items:start;}
+        .settings-shell{display:grid;grid-template-columns:230px minmax(0,1fr);gap:1.5rem;align-items:start;min-width:0;}.settings-shell>*{min-width:0;}
         .settings-aside{position:sticky;top:5rem;}
-        @media (max-width:768px){.settings-shell{grid-template-columns:1fr;}.settings-aside{position:static;}}
+        @media (max-width:768px){.settings-shell{grid-template-columns:minmax(0,1fr);}.settings-aside{position:static;}}
         .st-menu{display:flex;flex-direction:column;gap:.15rem;background:#fff;border:1px solid #e2e8f0;border-radius:.75rem;padding:.5rem;box-shadow:0 1px 2px rgba(0,0,0,.05);}
         .st-group{font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#94a3b8;padding:.65rem .6rem .25rem;}
         .st-group:first-child{padding-top:.25rem;}

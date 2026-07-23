@@ -22,7 +22,7 @@
                 <p class="mt-2 text-lg text-shop-muted">{{ $article->excerpt }}</p>
             @endif
 
-            <div class="mt-6 shop-prose">
+            <div class="mt-6 rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shop-prose shadow-sm">
                 {!! $article->body_html !!}
             </div>
 

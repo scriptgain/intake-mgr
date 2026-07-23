@@ -7,7 +7,7 @@
 <div {{ $attributes->merge(['class' => 'pb-5']) }}>
     @if ($back)
         <a href="{{ $back['href'] }}"
-            class="mb-2 -ml-1 inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-sm text-slate-500 transition hover:text-slate-900">
+            class="mb-3 inline-flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-1.5 text-sm font-medium text-slate-600 shadow-sm ring-1 ring-inset ring-slate-200 transition hover:bg-slate-50 hover:text-slate-900">
             <x-icon name="chevron-left" class="h-4 w-4 shrink-0" aria-hidden="true" />
             {{ $back['label'] }}
         </a>

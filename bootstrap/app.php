@@ -37,6 +37,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'setup' => \App\Http\Middleware\EnsureSetup::class,
             'captcha' => \App\Http\Middleware\EnsureCaptcha::class,
         ]);
+
+        // Guard-aware login redirect for guests: a logged-out visitor hitting a
+        // customer page lands on the customer login, not the staff panel login.
+        $middleware->redirectGuestsTo(fn (\Illuminate\Http\Request $request) => $request->is('account', 'account/*')
+            ? route('shop.account.login')
+            : route('login'));
         // Perimeter guard on every web request: IP bans + optional allowlist.
         $middleware->web(append: [
             \App\Http\Middleware\FirewallGuard::class,

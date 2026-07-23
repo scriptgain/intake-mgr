@@ -20,7 +20,7 @@
             @endif
         </x-slot:meta>
         <x-slot:actions>
-            <x-button variant="secondary" size="sm" icon="external" href="{{ route('shop.home') }}" target="_blank" rel="noopener">View Store</x-button>
+            <x-button variant="secondary" size="sm" icon="external" href="{{ route('shop.home') }}" target="_blank" rel="noopener">View Website</x-button>
             @if ($override)
                 <x-confirm-action
                     name="reset-template"

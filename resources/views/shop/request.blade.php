@@ -64,10 +64,10 @@
                     <form method="POST" action="{{ route('shop.request.store') }}" enctype="multipart/form-data">
                         @csrf
 
-                        <div class="overflow-hidden rounded-2xl bg-white ring-1 ring-inset ring-shop-line shadow-sm">
+                        <div class="overflow-hidden rounded-2xl bg-white border border-slate-200 shadow-sm">
 
                             {{-- Panel header --}}
-                            <div class="flex items-center gap-3 border-b border-shop-line bg-slate-50/70 px-6 py-5 sm:px-8">
+                            <div class="flex items-center gap-3 border-b border-slate-200 bg-slate-50 px-6 py-5 sm:px-8">
                                 <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 ring-1 ring-inset ring-brand-200">
                                     <x-icon name="edit" class="w-5 h-5" />
                                 </span>
@@ -151,7 +151,7 @@
                             </div>
 
                             {{-- Panel footer --}}
-                            <div class="flex flex-col-reverse items-stretch gap-3 border-t border-shop-line bg-slate-50/70 px-6 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+                            <div class="flex flex-col-reverse items-stretch gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-8">
                                 @unless ($me)
                                     <span class="text-sm text-shop-muted">Have an account? <a href="{{ route('shop.account.login') }}" class="font-medium text-brand-700 hover:text-brand-800">Sign in</a> to track it.</span>
                                 @else

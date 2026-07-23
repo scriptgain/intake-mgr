@@ -1,49 +1,46 @@
 <x-layouts.shop>
     {{-- Hero --}}
-    <section class="relative isolate overflow-hidden text-white"
-             style="background:linear-gradient(135deg,#1a120d 0%,#2a1810 42%,#3f1508 78%,#7c2d12 130%);">
-        {{-- Warm brand glows for depth. --}}
-        <div class="pointer-events-none absolute -left-40 -top-24 -z-10 h-[30rem] w-[30rem] rounded-full bg-brand-500/25 blur-3xl"></div>
-        <div class="pointer-events-none absolute -right-24 top-40 -z-10 h-[26rem] w-[26rem] rounded-full bg-brand-600/20 blur-3xl"></div>
-        {{-- Dot texture, faded out toward the bottom. --}}
-        <div class="pointer-events-none absolute inset-0 -z-10"
-             style="background-image:radial-gradient(circle at center, rgba(255,255,255,0.07) 1px, transparent 1.4px);background-size:22px 22px;-webkit-mask-image:linear-gradient(to bottom, black 10%, transparent 88%);mask-image:linear-gradient(to bottom, black 10%, transparent 88%);"></div>
+    <section class="relative isolate overflow-hidden bg-white">
+        {{-- Warm light wash + soft brand glow for depth (no flat white, no dark ground). --}}
+        <div class="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-br from-brand-50 via-white to-shop-bg"></div>
+        <div class="pointer-events-none absolute -right-40 -top-32 -z-10 h-[34rem] w-[34rem] rounded-full bg-brand-100/60 blur-3xl"></div>
+        <div class="pointer-events-none absolute -left-24 bottom-0 -z-10 h-72 w-72 rounded-full bg-brand-100/40 blur-3xl"></div>
 
         <div class="{{ $maxWidth }} mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24 lg:py-28">
             <div class="grid items-center gap-14 lg:grid-cols-2 lg:gap-8">
 
                 {{-- Left: the pitch --}}
                 <div class="max-w-xl">
-                    <p class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-200 ring-1 ring-inset ring-white/15 backdrop-blur">
-                        <x-icon name="bolt" class="w-3.5 h-3.5 shrink-0 text-brand-300" />
+                    <p class="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-700 ring-1 ring-inset ring-brand-200">
+                        <x-icon name="bolt" class="w-3.5 h-3.5 shrink-0 text-brand-600" />
                         {{ config('shop.store_tagline') }}
                     </p>
 
-                    <h1 class="mt-6 font-display text-5xl sm:text-6xl lg:text-[4.25rem] font-semibold leading-[0.98] tracking-tight">
-                        Service You Can<br class="hidden sm:block"> <span class="bg-gradient-to-r from-brand-300 to-brand-500 bg-clip-text text-transparent">Count On.</span>
+                    <h1 class="mt-6 font-display text-5xl sm:text-6xl lg:text-[4.25rem] font-semibold leading-[0.98] tracking-tight text-shop-ink">
+                        Service You Can<br class="hidden sm:block"> <span class="text-brand-600">Count On.</span>
                     </h1>
 
-                    <p class="mt-6 max-w-lg text-lg leading-relaxed text-brand-100/80">
+                    <p class="mt-6 max-w-lg text-lg leading-relaxed text-shop-muted">
                         Tell us what you need and we take it from there: fast scheduling, clear updates, and work done right the first time.
                     </p>
 
                     <div class="mt-9 flex flex-wrap items-center gap-3">
                         <a href="{{ route('shop.request') }}"
-                           class="group inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-semibold text-brand-800 shadow-lg shadow-brand-950/30 transition hover:bg-brand-50">
+                           class="group inline-flex items-center gap-2 rounded-xl bg-brand-600 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-brand-600/20 transition hover:bg-brand-700">
                             <x-icon name="plus" class="w-4 h-4 shrink-0" />
                             Request Service
                             <x-icon name="chevron-right" class="w-4 h-4 shrink-0 transition group-hover:translate-x-0.5" />
                         </a>
                         <a href="{{ route('shop.account.login') }}"
-                           class="inline-flex items-center gap-2 rounded-xl bg-white/10 px-6 py-3.5 text-sm font-semibold text-white ring-1 ring-inset ring-white/20 backdrop-blur transition hover:bg-white/15">
+                           class="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-semibold text-shop-ink ring-1 ring-inset ring-shop-line transition hover:bg-slate-50">
                             Customer Sign In
                         </a>
                     </div>
 
                     <div class="mt-10 flex flex-wrap gap-2.5">
                         @foreach ([['bolt','Fast Response'], ['shield','Vetted, Insured Pros'], ['check-circle','Track It All Online']] as [$icon, $label])
-                            <span class="inline-flex items-center gap-2 rounded-full bg-white/[0.07] px-3.5 py-2 text-sm font-medium text-brand-50 ring-1 ring-inset ring-white/10">
-                                <x-icon :name="$icon" class="w-4 h-4 shrink-0 text-brand-300" />
+                            <span class="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-sm font-medium text-shop-ink ring-1 ring-inset ring-shop-line">
+                                <x-icon :name="$icon" class="w-4 h-4 shrink-0 text-brand-600" />
                                 {{ $label }}
                             </span>
                         @endforeach
@@ -53,9 +50,9 @@
                 {{-- Right: a live work-order card, so the hero shows the product,
                      not just decoration. --}}
                 <div class="relative lg:justify-self-end">
-                    <div class="pointer-events-none absolute -right-3 -top-3 h-full w-full rounded-3xl bg-white/[0.06] ring-1 ring-inset ring-white/10"></div>
+                    <div class="pointer-events-none absolute -right-3 -top-3 h-full w-full rounded-3xl bg-brand-100/50 ring-1 ring-inset ring-brand-200/60"></div>
 
-                    <div class="relative w-full max-w-md rounded-3xl bg-white p-6 text-shop-ink shadow-2xl shadow-brand-950/40 ring-1 ring-black/5">
+                    <div class="relative w-full max-w-md rounded-3xl bg-white p-6 text-shop-ink shadow-xl shadow-brand-900/10 ring-1 ring-shop-line">
                         <div class="flex items-center justify-between gap-3">
                             <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-shop-muted">
                                 <x-icon name="truck" class="w-4 h-4 shrink-0 text-brand-600" />

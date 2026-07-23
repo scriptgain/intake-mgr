@@ -43,7 +43,7 @@
                     </span>
                     <a href="{{ route('shop.home') }}" target="_blank" rel="noopener"
                         class="hidden h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-medium text-slate-300 transition hover:bg-white/10 hover:text-white md:inline-flex">
-                        <x-icon name="external" class="h-4 w-4" aria-hidden="true" /> View Store
+                        <x-icon name="external" class="h-4 w-4" aria-hidden="true" /> View Website
                     </a>
                     <span class="hidden h-5 w-px bg-white/10 sm:inline-block"></span>
                     <x-dropdown align="right">
@@ -96,7 +96,7 @@
                                 <div x-data="{ open: false }" class="relative" @click.outside="open = false" @keydown.escape="open = false">
                                     <button type="button" @click="open = ! open" :aria-expanded="open.toString()"
                                         @class([
-                                            'inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ring-1 ring-inset transition',
+                                            'inline-flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium ring-1 ring-inset transition',
                                             'bg-brand-50 text-brand-700 ring-brand-200' => $item['active'],
                                             'text-slate-600 ring-transparent hover:bg-slate-100 hover:text-slate-900 hover:ring-slate-200' => ! $item['active'],
                                         ])>

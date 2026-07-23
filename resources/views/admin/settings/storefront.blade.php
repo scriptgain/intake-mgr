@@ -9,13 +9,18 @@
         @csrf
         @method('PUT')
 
-        <div class="inline-flex flex-wrap gap-1 rounded-lg bg-slate-100 p-1 mb-6" role="tablist" aria-label="Storefront settings">
-            <button type="button" @click="tab = 'details'" :class="tab === 'details' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'" class="px-3 py-1.5 rounded-md text-sm font-medium transition">Store Details</button>
-            <button type="button" @click="tab = 'catalog'" :class="tab === 'catalog' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'" class="px-3 py-1.5 rounded-md text-sm font-medium transition">Catalog</button>
-            <button type="button" @click="tab = 'checkout'" :class="tab === 'checkout' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'" class="px-3 py-1.5 rounded-md text-sm font-medium transition">Checkout</button>
-            <button type="button" @click="tab = 'tax'" :class="tab === 'tax' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'" class="px-3 py-1.5 rounded-md text-sm font-medium transition">Tax</button>
-            <button type="button" @click="tab = 'appearance'" :class="tab === 'appearance' ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'" class="px-3 py-1.5 rounded-md text-sm font-medium transition">Appearance</button>
-        </div>
+        <x-segmented label="Storefront settings" class="mb-6">
+            <button type="button" role="tab" :aria-selected="(tab === 'details').toString()" @click="tab = 'details'"
+                class="vx-seg-item" :class="tab === 'details' && 'is-active'">Store Details</button>
+            <button type="button" role="tab" :aria-selected="(tab === 'catalog').toString()" @click="tab = 'catalog'"
+                class="vx-seg-item" :class="tab === 'catalog' && 'is-active'">Catalog</button>
+            <button type="button" role="tab" :aria-selected="(tab === 'checkout').toString()" @click="tab = 'checkout'"
+                class="vx-seg-item" :class="tab === 'checkout' && 'is-active'">Checkout</button>
+            <button type="button" role="tab" :aria-selected="(tab === 'tax').toString()" @click="tab = 'tax'"
+                class="vx-seg-item" :class="tab === 'tax' && 'is-active'">Tax</button>
+            <button type="button" role="tab" :aria-selected="(tab === 'appearance').toString()" @click="tab = 'appearance'"
+                class="vx-seg-item" :class="tab === 'appearance' && 'is-active'">Appearance</button>
+        </x-segmented>
 
         {{-- Store Details --}}
         <div x-show="tab === 'details'" x-cloak>
@@ -78,6 +83,7 @@
                 <div class="space-y-4">
                     <x-toggle name="guest_checkout" :checked="$checked('guest_checkout', true)" label="Allow Guest Checkout" description="Shoppers can check out without creating an account." />
                     <x-toggle name="terms_required" :checked="$checked('terms_required', true)" label="Require Terms Acceptance" description="Shoppers must accept your terms before placing an order." />
+                    <x-toggle name="quotes_auto_invoice_on_accept" :checked="$checked('quotes_auto_invoice_on_accept', true)" label="Auto-Invoice On Quote Acceptance" description="When a customer accepts a quote, generate the invoice immediately so it appears in their Billing to pay." />
                 </div>
             </x-card>
         </div>

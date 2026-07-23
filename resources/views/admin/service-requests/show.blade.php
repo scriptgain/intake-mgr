@@ -31,62 +31,86 @@
         </x-slot:primary>
     </x-page-header>
 
+    <div x-data="{ tab: 'overview' }">
+        <div class="mb-6">
+            <x-segmented label="Request Details">
+                <button type="button" class="vx-seg-item" :class="tab === 'overview' && 'is-active'" x-on:click="tab = 'overview'" role="tab" :aria-selected="(tab === 'overview').toString()">
+                    Overview
+                </button>
+                <button type="button" class="vx-seg-item" :class="tab === 'attachments' && 'is-active'" x-on:click="tab = 'attachments'" role="tab" :aria-selected="(tab === 'attachments').toString()">
+                    Attachments <span class="vx-seg-count">{{ $serviceRequest->attachments->count() }}</span>
+                </button>
+                <button type="button" class="vx-seg-item" :class="tab === 'activity' && 'is-active'" x-on:click="tab = 'activity'" role="tab" :aria-selected="(tab === 'activity').toString()">
+                    Activity <span class="vx-seg-count">{{ $serviceRequest->activities->count() }}</span>
+                </button>
+            </x-segmented>
+        </div>
+
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div class="min-w-0 space-y-4 lg:col-span-2">
-            <x-card :title="$serviceRequest->subject" subtitle="What the requester asked for.">
-                @if ($serviceRequest->description)
-                    <p class="whitespace-pre-line text-sm leading-relaxed text-slate-700">{{ $serviceRequest->description }}</p>
-                @else
-                    <p class="text-sm text-slate-500">No description was provided.</p>
-                @endif
-
-                <dl class="mt-5 grid grid-cols-1 gap-4 border-t border-slate-100 pt-5 text-sm sm:grid-cols-2">
-                    <div>
-                        <dt class="vx-eyebrow mb-1">Service</dt>
-                        <dd class="text-slate-900">{{ $serviceRequest->service?->name ?? 'Not specified' }}</dd>
-                    </div>
-                    <div>
-                        <dt class="vx-eyebrow mb-1">Source</dt>
-                        <dd class="text-slate-900">{{ \Illuminate\Support\Str::headline($serviceRequest->source) }}</dd>
-                    </div>
-                    @if (! empty($addressLines))
-                        <div class="sm:col-span-2">
-                            <dt class="vx-eyebrow mb-1">Service Address</dt>
-                            <dd>
-                                <address class="space-y-0.5 not-italic text-slate-700">
-                                    @foreach ($addressLines as $line)<p>{{ $line }}</p>@endforeach
-                                </address>
-                            </dd>
-                        </div>
+            {{-- OVERVIEW --}}
+            <div x-show="tab === 'overview'">
+                <x-card :title="$serviceRequest->subject" subtitle="What the requester asked for.">
+                    @if ($serviceRequest->description)
+                        <p class="whitespace-pre-line text-sm leading-relaxed text-slate-700">{{ $serviceRequest->description }}</p>
+                    @else
+                        <p class="text-sm text-slate-500">No description was provided.</p>
                     @endif
-                </dl>
-            </x-card>
 
-            <x-card title="Attachments" flush>
-                @if ($serviceRequest->attachments->isEmpty())
-                    <x-empty-state icon="folder" title="No Attachments"
-                        description="Photos or documents sent with this request would be listed here." />
-                @else
-                    <x-table flush>
-                        <thead>
-                            <tr><th>File</th><th>Type</th><th class="text-right">Size</th></tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($serviceRequest->attachments as $file)
-                                <tr>
-                                    <td class="font-medium text-slate-900">{{ $file->filename }}</td>
-                                    <td class="text-slate-500">{{ $file->mime ?: 'Unknown' }}</td>
-                                    <td class="text-right text-slate-500">{{ $file->size_formatted }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </x-table>
-                @endif
-            </x-card>
+                    <dl class="mt-5 grid grid-cols-1 gap-4 border-t border-slate-100 pt-5 text-sm sm:grid-cols-2">
+                        <div>
+                            <dt class="vx-eyebrow mb-1">Service</dt>
+                            <dd class="text-slate-900">{{ $serviceRequest->service?->name ?? 'Not specified' }}</dd>
+                        </div>
+                        <div>
+                            <dt class="vx-eyebrow mb-1">Source</dt>
+                            <dd class="text-slate-900">{{ \Illuminate\Support\Str::headline($serviceRequest->source) }}</dd>
+                        </div>
+                        @if (! empty($addressLines))
+                            <div class="sm:col-span-2">
+                                <dt class="vx-eyebrow mb-1">Service Address</dt>
+                                <dd>
+                                    <address class="space-y-0.5 not-italic text-slate-700">
+                                        @foreach ($addressLines as $line)<p>{{ $line }}</p>@endforeach
+                                    </address>
+                                </dd>
+                            </div>
+                        @endif
+                    </dl>
+                </x-card>
+            </div>
 
-            <x-card title="Activity">
-                @include('admin._activity-timeline', ['activities' => $serviceRequest->activities])
-            </x-card>
+            {{-- ATTACHMENTS --}}
+            <div x-show="tab === 'attachments'" x-cloak>
+                <x-card title="Attachments" flush>
+                    @if ($serviceRequest->attachments->isEmpty())
+                        <x-empty-state icon="folder" title="No Attachments"
+                            description="Photos or documents sent with this request would be listed here." />
+                    @else
+                        <x-table flush>
+                            <thead>
+                                <tr><th>File</th><th>Type</th><th class="text-right">Size</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($serviceRequest->attachments as $file)
+                                    <tr>
+                                        <td class="font-medium text-slate-900">{{ $file->filename }}</td>
+                                        <td class="text-slate-500">{{ $file->mime ?: 'Unknown' }}</td>
+                                        <td class="text-right text-slate-500">{{ $file->size_formatted }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </x-table>
+                    @endif
+                </x-card>
+            </div>
+
+            {{-- ACTIVITY --}}
+            <div x-show="tab === 'activity'" x-cloak>
+                <x-card title="Activity">
+                    @include('admin._activity-timeline', ['activities' => $serviceRequest->activities])
+                </x-card>
+            </div>
         </div>
 
         <div class="space-y-4">
@@ -132,8 +156,15 @@
                             <x-button variant="secondary" size="sm" icon="truck" class="w-full">Convert To Work Order</x-button>
                         </x-confirm-action>
                     @endif
+
+                    <x-confirm-action name="convert-quote-side" :action="route('service-requests.convert-quote', $serviceRequest)"
+                        title="Convert To Quote?" tone="default" confirm="Create Quote" confirmIcon="document"
+                        message="A draft quote is started from this request's details. You add the line items and prices, then send it to the customer.">
+                        <x-button variant="secondary" size="sm" icon="document" class="w-full">Convert To Quote</x-button>
+                    </x-confirm-action>
                 </div>
             </x-card>
         </div>
+    </div>
     </div>
 </x-layouts.app>

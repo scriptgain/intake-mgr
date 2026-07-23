@@ -83,6 +83,12 @@ class Order extends Model
         return $this->belongsTo(Project::class, 'project_id');
     }
 
+    /** The quote this invoice was generated from, if any. */
+    public function quote(): BelongsTo
+    {
+        return $this->belongsTo(Quote::class, 'quote_id');
+    }
+
     /**
      * Allocate the next sequential order number inside a transaction, so two
      * simultaneous checkouts can never mint the same number.

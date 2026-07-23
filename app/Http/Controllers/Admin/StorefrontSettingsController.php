@@ -24,6 +24,7 @@ class StorefrontSettingsController extends Controller
     /** Toggle-switch settings, stored as '1'/'0'. */
     private const BOOL_KEYS = [
         'allow_backorder', 'hide_out_of_stock', 'guest_checkout', 'terms_required', 'tax_shipping',
+        'quotes_auto_invoice_on_accept',
     ];
 
     public function edit()

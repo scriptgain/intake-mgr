@@ -68,10 +68,11 @@ class App extends Component
                 'type' => 'group',
                 'label' => 'Service Desk',
                 'icon' => 'bolt',
-                'active' => request()->routeIs('service-requests.*', 'tickets.*', 'work-orders.*', 'projects.*'),
+                'active' => request()->routeIs('service-requests.*', 'tickets.*', 'quotes.*', 'work-orders.*', 'projects.*'),
                 'items' => [
                     ['Intake Inbox', route('service-requests.index'), 'envelope', request()->routeIs('service-requests.*')],
                     ['Tickets', route('tickets.index'), 'bell', request()->routeIs('tickets.*')],
+                    ['Quotes', route('quotes.index'), 'document', request()->routeIs('quotes.*')],
                     ['Work Orders', route('work-orders.index'), 'truck', request()->routeIs('work-orders.*')],
                     ['Projects', route('projects.index'), 'folder', request()->routeIs('projects.*')],
                 ],
@@ -100,7 +101,7 @@ class App extends Component
             ],
             [
                 'type' => 'group',
-                'label' => 'Service Catalog',
+                'label' => 'Catalog',
                 'icon' => 'bag',
                 'active' => request()->routeIs('products.*', 'collections.*', 'seo.*'),
                 'items' => [
@@ -111,39 +112,18 @@ class App extends Component
             ],
             [
                 'type' => 'group',
-                'label' => 'Appearance',
-                'icon' => 'edit',
-                'active' => request()->routeIs('themes.*', 'templates.*'),
-                'items' => array_values(array_filter([
-                    ['Themes', route('themes.index'), 'star', request()->routeIs('themes.*')],
-                    // Editing Blade is equivalent to running code on this
-                    // server, so the entry is not even shown to non-admins.
-                    auth()->user()?->isAdmin()
-                        ? ['Templates', route('templates.index'), 'edit', request()->routeIs('templates.*')]
-                        : null,
-                ])),
-            ],
-            [
-                'type' => 'group',
-                'label' => 'Help Center',
+                'label' => 'Content',
                 'icon' => 'book',
                 'active' => request()->routeIs('help-categories.*', 'help-articles.*', 'store-pages.*'),
                 'items' => [
-                    ['Categories', route('help-categories.index'), 'folder', request()->routeIs('help-categories.*')],
-                    ['Articles', route('help-articles.index'), 'book', request()->routeIs('help-articles.*')],
+                    ['Help Categories', route('help-categories.index'), 'folder', request()->routeIs('help-categories.*')],
+                    ['Help Articles', route('help-articles.index'), 'book', request()->routeIs('help-articles.*')],
                     ['Policy Pages', route('store-pages.index'), 'info', request()->routeIs('store-pages.*')],
                 ],
             ],
-            [
-                'type' => 'group',
-                'label' => 'Configuration',
-                'icon' => 'truck',
-                'active' => request()->routeIs('shipping.*', 'taxes.*'),
-                'items' => [
-                    ['Shipping', route('shipping.index'), 'truck', request()->routeIs('shipping.*')],
-                    ['Tax', route('taxes.index'), 'percent', request()->routeIs('taxes.*')],
-                ],
-            ],
+            // Themes, Templates, Shipping, Tax and the rest live under the
+            // Settings hub (the gear menu), keeping the primary nav to the
+            // day-to-day work areas.
         ];
     }
 
@@ -177,6 +157,7 @@ class App extends Component
             'discounts' => ['Discounts', 'discounts.index'],
             'service-requests' => ['Intake Inbox', 'service-requests.index'],
             'tickets' => ['Tickets', 'tickets.index'],
+            'quotes' => ['Quotes', 'quotes.index'],
             'work-orders' => ['Work Orders', 'work-orders.index'],
             'projects' => ['Projects', 'projects.index'],
             'booking-types' => ['Booking Types', 'booking-types.index'],

@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\CalendarSettingsController;
 use App\Http\Controllers\Admin\PaymentSettingsController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProjectController;
+use App\Http\Controllers\Admin\QuoteController;
 use App\Http\Controllers\Admin\ServiceRequestController;
 use App\Http\Controllers\Admin\TicketController;
 use App\Http\Controllers\Admin\WorkOrderController;
@@ -34,6 +35,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\SetupController;
 use App\Http\Controllers\Shop\AccountController;
+use App\Http\Controllers\Shop\QuoteController as ShopQuoteController;
 use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\CatalogController;
 use App\Http\Controllers\Shop\CheckoutController;
@@ -146,6 +148,14 @@ Route::name('shop.')->group(function () {
     Route::get('/docs', [DocsController::class, 'index'])->name('docs');
     Route::get('/docs/openapi.json', [DocsController::class, 'openapi'])->name('docs.openapi');
 
+    // Public quote link: an emailed quote can be reviewed, accepted, or declined
+    // via its unguessable accept_token, without an account.
+    Route::get('/quote/{token}', [ShopQuoteController::class, 'publicShow'])->name('quote.public');
+    Route::post('/quote/{token}/accept', [ShopQuoteController::class, 'publicAccept'])
+        ->middleware('throttle:10,1')->name('quote.public.accept');
+    Route::post('/quote/{token}/decline', [ShopQuoteController::class, 'publicDecline'])
+        ->middleware('throttle:10,1')->name('quote.public.decline');
+
     // Request Service — the public intake front door. Captcha + throttle since
     // it is an anonymous, mail-generating surface.
     Route::get('/request', [ServiceRequestIntakeController::class, 'create'])->name('request');
@@ -244,6 +254,11 @@ Route::name('shop.')->group(function () {
         Route::post('/account/work-orders/{workOrder:number}/cancel', [AccountController::class, 'cancelWorkOrder'])->name('account.work-order.cancel');
         Route::get('/account/invoices', [AccountController::class, 'invoices'])->name('account.invoices');
 
+        Route::get('/account/quotes', [ShopQuoteController::class, 'index'])->name('account.quotes');
+        Route::get('/account/quotes/{quote:number}', [ShopQuoteController::class, 'show'])->name('account.quote');
+        Route::post('/account/quotes/{quote:number}/accept', [ShopQuoteController::class, 'accept'])->name('account.quote.accept');
+        Route::post('/account/quotes/{quote:number}/decline', [ShopQuoteController::class, 'decline'])->name('account.quote.decline');
+
         Route::post('/account/logout', [AccountController::class, 'logout'])->name('account.logout');
     });
 });
@@ -292,6 +307,7 @@ Route::prefix('admin')->middleware(['auth', 'security.policy'])->group(function 
     Route::get('service-requests/{serviceRequest}', [ServiceRequestController::class, 'show'])->name('service-requests.show');
     Route::post('service-requests/{serviceRequest}/convert-ticket', [ServiceRequestController::class, 'convertToTicket'])->name('service-requests.convert-ticket');
     Route::post('service-requests/{serviceRequest}/convert-work-order', [ServiceRequestController::class, 'convertToWorkOrder'])->name('service-requests.convert-work-order');
+    Route::post('service-requests/{serviceRequest}/convert-quote', [ServiceRequestController::class, 'convertToQuote'])->name('service-requests.convert-quote');
     Route::post('service-requests/{serviceRequest}/close', [ServiceRequestController::class, 'close'])->name('service-requests.close');
 
     /* ---- Service Desk: tickets ---- */
@@ -310,6 +326,14 @@ Route::prefix('admin')->middleware(['auth', 'security.policy'])->group(function 
     Route::post('work-orders/{workOrder}/complete', [WorkOrderController::class, 'complete'])->name('work-orders.complete');
     Route::post('work-orders/{workOrder}/cancel', [WorkOrderController::class, 'cancel'])->name('work-orders.cancel');
     Route::resource('work-orders', WorkOrderController::class)->parameters(['work-orders' => 'workOrder']);
+
+    /* ---- Service Desk: quotes / estimates ---- */
+    Route::delete('quotes/bulk', [QuoteController::class, 'bulkDestroy'])->name('quotes.bulk-destroy');
+    Route::post('quotes/{quote}/send', [QuoteController::class, 'send'])->name('quotes.send');
+    Route::post('quotes/{quote}/accept', [QuoteController::class, 'accept'])->name('quotes.accept');
+    Route::post('quotes/{quote}/decline', [QuoteController::class, 'decline'])->name('quotes.decline');
+    Route::post('quotes/{quote}/convert', [QuoteController::class, 'convert'])->name('quotes.convert');
+    Route::resource('quotes', QuoteController::class);
 
     /* ---- Service Desk: projects ---- */
     Route::delete('projects/bulk', [ProjectController::class, 'bulkDestroy'])->name('projects.bulk-destroy');

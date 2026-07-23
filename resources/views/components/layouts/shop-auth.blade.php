@@ -57,9 +57,9 @@
 
                 <ul class="mt-10 space-y-4">
                     @foreach ([
-                        ['truck', 'Free Shipping', 'On Every Order Over $75'],
-                        ['refresh', 'Easy 30-Day Returns', 'Changed Your Mind? No Fuss'],
-                        ['lock', 'Secure Checkout', 'Payments Encrypted End To End'],
+                        ['bolt', 'Fast Scheduling', 'A Vetted Tech At Your Door, Quickly'],
+                        ['shield', 'Trusted Pros', 'Licensed And Insured Technicians'],
+                        ['clock', 'Track Everything', 'Requests, Visits, And Invoices Online'],
                     ] as [$icon, $label, $note])
                         <li class="flex items-start gap-3.5">
                             <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-white ring-1 ring-inset ring-white/20">

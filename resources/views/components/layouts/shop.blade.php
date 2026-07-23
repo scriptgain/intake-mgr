@@ -90,7 +90,7 @@
 
                 <div class="flex items-center gap-2 shrink-0">
                     <x-button href="{{ route('shop.request') }}" size="sm" icon="plus" class="hidden sm:inline-flex">Request Service</x-button>
-                    <a href="{{ $currentCustomer ? route('shop.account') : route('shop.account.login') }}" class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-shop-ink hover:bg-slate-100 transition" aria-label="Account">
+                    <a href="{{ $currentCustomer ? route('shop.account') : route('shop.account.login') }}" class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-shop-ink ring-1 ring-transparent hover:bg-slate-100 hover:ring-shop-line transition" aria-label="Account">
                         <x-icon name="user" class="w-5 h-5" />
                     </a>
                 </div>
@@ -205,6 +205,7 @@
                             <li><a href="{{ route('shop.account') }}" class="hover:text-shop-ink transition">My Account</a></li>
                             <li><a href="{{ route('shop.account.requests') }}" class="hover:text-shop-ink transition">My Requests</a></li>
                             <li><a href="{{ route('shop.account.tickets') }}" class="hover:text-shop-ink transition">My Tickets</a></li>
+                            <li><a href="{{ route('shop.account.quotes') }}" class="hover:text-shop-ink transition">My Quotes</a></li>
                             <li><a href="{{ route('shop.account.invoices') }}" class="hover:text-shop-ink transition">Invoices</a></li>
                         @else
                             <li><a href="{{ route('shop.account.login') }}" class="hover:text-shop-ink transition">Sign In</a></li>

@@ -33,8 +33,8 @@
                                     @if ($item->image_url)
                                         <img src="{{ $item->image_url }}" alt="{{ $item->name }}">
                                     @else
-                                        <div class="w-full h-full flex items-center justify-center text-shop-muted">
-                                            <x-icon name="bag" class="w-6 h-6" />
+                                        <div class="w-full h-full flex items-center justify-center text-brand-600">
+                                            <x-icon name="bolt" class="w-6 h-6" />
                                         </div>
                                     @endif
                                 </span>

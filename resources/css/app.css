@@ -207,12 +207,13 @@
     /* 5. Segmented control. One implementation instead of the four
        near-identical inline copies this markup grew. */
     .vx-seg {
-        display: inline-flex;
-        flex-wrap: nowrap;
+        display: flex;
+        flex-wrap: wrap;
         gap: 0.125rem;
         padding: 0.1875rem;
         border-radius: 0.5rem;
         background: var(--color-slate-100);
+        border: 1px solid var(--color-slate-200);
     }
     .vx-seg-item {
         display: inline-flex;
