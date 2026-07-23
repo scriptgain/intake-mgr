@@ -56,6 +56,12 @@
                 <x-slot:search>
                     <form method="GET" action="{{ route('work-orders.index') }}" class="flex flex-wrap items-center gap-2">
                         @if (! empty($filters['status']))<input type="hidden" name="status" value="{{ $filters['status'] }}">@endif
+                        <label for="wo-source" class="sr-only">Filter By Source</label>
+                        <select id="wo-source" name="booking" onchange="this.form.submit()"
+                            class="rounded-lg border-0 bg-white py-1.5 pl-3 pr-8 text-sm text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500">
+                            <option value="">All Sources</option>
+                            <option value="1" @selected(! empty($filters['booking']))>Online Bookings</option>
+                        </select>
                         <label for="wo-upcoming" class="sr-only">Sort By Upcoming</label>
                         <select id="wo-upcoming" name="upcoming" onchange="this.form.submit()"
                             class="rounded-lg border-0 bg-white py-1.5 pl-3 pr-8 text-sm text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500">
@@ -71,7 +77,7 @@
                         </div>
                         <x-button type="submit" variant="secondary" size="sm">Search</x-button>
                         @if (! empty($filters['q']))
-                            <x-button variant="ghost" size="sm" href="{{ route('work-orders.index', array_filter(['status' => $filters['status'] ?? '', 'upcoming' => $filters['upcoming'] ?? ''])) }}">Clear</x-button>
+                            <x-button variant="ghost" size="sm" href="{{ route('work-orders.index', array_filter(['status' => $filters['status'] ?? '', 'upcoming' => $filters['upcoming'] ?? '', 'booking' => $filters['booking'] ?? ''])) }}">Clear</x-button>
                         @endif
                     </form>
                 </x-slot:search>
@@ -112,7 +118,15 @@
                                 <tr class="vx-rail vx-rail-{{ $workOrder->status_badge }}">
                                     <td class="vx-col-select">@include('admin._select-toggle', ['id' => $workOrder->id])</td>
                                     <td>
-                                        <a href="{{ route('work-orders.show', $workOrder) }}" class="font-medium text-slate-900 hover:text-brand-700">{{ $workOrder->number }}</a>
+                                        <div class="flex items-center gap-2">
+                                            <a href="{{ route('work-orders.show', $workOrder) }}" class="font-medium text-slate-900 hover:text-brand-700">{{ $workOrder->number }}</a>
+                                            @if ($workOrder->booking_type_id)
+                                                <span class="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-[0.7rem] font-medium text-brand-700 ring-1 ring-inset ring-brand-100"
+                                                      title="{{ $workOrder->bookingType?->name ? 'Booked online: '.$workOrder->bookingType->name : 'Booked online' }}">
+                                                    <x-icon name="clock" class="h-3 w-3" /> Online
+                                                </span>
+                                            @endif
+                                        </div>
                                         <span class="block max-w-xs truncate text-xs text-slate-500">{{ $workOrder->title }}</span>
                                     </td>
                                     <td class="text-slate-600">{{ $workOrder->customer?->name ?? 'No Customer' }}</td>

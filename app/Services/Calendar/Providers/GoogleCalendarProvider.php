@@ -80,6 +80,12 @@ class GoogleCalendarProvider implements CalendarProvider
             ]);
 
             if (! $response->successful()) {
+                Log::warning('Google token exchange failed', [
+                    'status' => $response->status(),
+                    'error' => $response->json('error'),
+                    'error_description' => $response->json('error_description'),
+                ]);
+
                 return $this->tokenFailure($response->json('error_description') ?? $response->json('error') ?? 'Token exchange failed.');
             }
 

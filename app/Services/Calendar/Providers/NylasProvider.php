@@ -77,8 +77,8 @@ class NylasProvider implements CalendarProvider
 
             $data = $response->json();
 
-            // The grant id is the durable handle; it is carried back to the
-            // controller in access_token so it lands on nylas_grant_id.
+            // The grant id is the durable handle; the controller reads it from
+            // the 'grant_id' key below and stores it on nylas_grant_id.
             $grant = (string) ($data['grant_id'] ?? '');
 
             if ($grant === '') {

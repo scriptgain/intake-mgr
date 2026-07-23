@@ -60,16 +60,24 @@
                                         message="Events this app added will be removed from the calendar. Your work orders are unaffected." />
                                 </div>
                             @elseif ($provider === 'apple')
-                                <div x-data="{ open: false }" class="mt-4">
+                                <div x-data="{ open: {{ $errors->has('apple_email') ? 'true' : 'false' }} }" class="mt-4">
                                     <x-button type="button" size="sm" icon="plus" x-on:click="open = !open">Connect iCloud</x-button>
-                                    <form x-show="open" x-cloak method="POST" action="{{ route('calendar.apple') }}" class="mt-4 space-y-3">
+                                    <form x-show="open" x-cloak method="POST" action="{{ route('calendar.apple') }}" class="mt-4 space-y-3" autocomplete="off">
                                         @csrf
+                                        {{-- Decoys: password managers autofill the FIRST matching username/password
+                                             fields, so these off-screen ones absorb the fill before the real inputs. --}}
+                                        <div aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px;height:0;width:0;overflow:hidden">
+                                            <input type="text" name="_pm_decoy_user" tabindex="-1" autocomplete="username">
+                                            <input type="password" name="_pm_decoy_pass" tabindex="-1" autocomplete="new-password">
+                                        </div>
                                         <x-field label="Apple ID Email" for="apple_email" :error="$errors->first('apple_email')">
-                                            <x-input id="apple_email" name="apple_email" type="email" autocomplete="off" />
+                                            <x-input id="apple_email" name="apple_email" type="email" autocomplete="off"
+                                                     data-lpignore="true" data-1p-ignore data-form-type="other" :value="old('apple_email')" />
                                         </x-field>
                                         <x-field label="App-Specific Password" for="app_password"
                                                  hint="Create one at appleid.apple.com → Sign-In and Security → App-Specific Passwords.">
-                                            <x-input id="app_password" name="app_password" type="password" autocomplete="new-password" />
+                                            <x-input id="app_password" name="app_password" type="password" autocomplete="new-password"
+                                                     data-lpignore="true" data-1p-ignore data-form-type="other" />
                                         </x-field>
                                         <x-button type="submit" size="sm" icon="check">Connect</x-button>
                                     </form>

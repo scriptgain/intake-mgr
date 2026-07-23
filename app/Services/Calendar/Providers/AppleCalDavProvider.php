@@ -38,7 +38,7 @@ class AppleCalDavProvider implements CalendarProvider
 
     private const DAV_NS = 'DAV:';
 
-    private const CALDAV_NS = 'urn:ietf:params:xml:data:caldav';
+    private const CALDAV_NS = 'urn:ietf:params:xml:ns:caldav';
 
     public function key(): string
     {
@@ -327,21 +327,21 @@ class AppleCalDavProvider implements CalendarProvider
     private function homeBody(): string
     {
         return '<?xml version="1.0" encoding="utf-8"?>'
-            .'<d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:data:caldav">'
+            .'<d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">'
             .'<d:prop><c:calendar-home-set/></d:prop></d:propfind>';
     }
 
     private function collectionsBody(): string
     {
         return '<?xml version="1.0" encoding="utf-8"?>'
-            .'<d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:data:caldav">'
+            .'<d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">'
             .'<d:prop><d:resourcetype/><d:displayname/><c:supported-calendar-component-set/></d:prop></d:propfind>';
     }
 
     private function timeRangeReportBody(CarbonImmutable $from, CarbonImmutable $to): string
     {
         return '<?xml version="1.0" encoding="utf-8"?>'
-            .'<c:calendar-query xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:data:caldav">'
+            .'<c:calendar-query xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">'
             .'<d:prop><c:calendar-data/></d:prop>'
             .'<c:filter><c:comp-filter name="VCALENDAR"><c:comp-filter name="VEVENT">'
             .'<c:time-range start="'.$this->icalStamp($from).'" end="'.$this->icalStamp($to).'"/>'

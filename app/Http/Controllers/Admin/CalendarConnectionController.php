@@ -92,7 +92,9 @@ class CalendarConnectionController extends Controller
         $result = $apple?->verify($data['apple_email'], $data['app_password']) ?? ['ok' => false];
 
         if (! ($result['ok'] ?? false)) {
-            return back()->withErrors(['apple_email' => 'Could not sign in to iCloud with those details. Use an app-specific password.']);
+            return back()->withErrors([
+                'apple_email' => $result['error'] ?? 'Could not sign in to iCloud with those details. Use an app-specific password.',
+            ])->withInput($request->except('app_password'));
         }
 
         CalendarConnection::updateOrCreate(
@@ -146,7 +148,7 @@ class CalendarConnectionController extends Controller
                 'refresh_token' => $result['refresh_token'] ?? null,
                 'token_expires_at' => isset($result['expires_in']) ? now()->addSeconds((int) $result['expires_in']) : null,
                 'scopes' => $result['scope'] ?? null,
-                'nylas_grant_id' => $result['nylas_grant_id'] ?? null,
+                'nylas_grant_id' => $result['grant_id'] ?? null,
                 'remote_calendar_id' => $result['calendar_id'] ?? 'primary',
                 'status' => 'connected',
                 'last_error' => null,

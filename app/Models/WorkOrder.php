@@ -63,6 +63,11 @@ class WorkOrder extends Model
         return $this->belongsTo(User::class, 'assigned_user_id');
     }
 
+    public function bookingType(): BelongsTo
+    {
+        return $this->belongsTo(BookingType::class);
+    }
+
     public function items(): HasMany
     {
         return $this->hasMany(WorkOrderItem::class);

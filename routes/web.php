@@ -35,6 +35,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\SetupController;
 use App\Http\Controllers\Shop\AccountController;
+use App\Http\Controllers\Shop\BookingController;
 use App\Http\Controllers\Shop\QuoteController as ShopQuoteController;
 use App\Http\Controllers\Shop\CartController;
 use App\Http\Controllers\Shop\CatalogController;
@@ -161,6 +162,25 @@ Route::name('shop.')->group(function () {
     Route::get('/request', [ServiceRequestIntakeController::class, 'create'])->name('request');
     Route::post('/request', [ServiceRequestIntakeController::class, 'store'])
         ->middleware(['throttle:10,1', 'captcha:service_request'])->name('request.store');
+
+    // Public self-serve scheduling: a shareable page per booking type, plus a
+    // signed link that schedules an existing service request.
+    Route::get('/book/{bookingType:slug}', [BookingController::class, 'show'])->name('book');
+    Route::post('/book/{bookingType:slug}', [BookingController::class, 'store'])
+        ->middleware('throttle:10,1')->name('book.store');
+    Route::get('/schedule/{serviceRequest:number}', [BookingController::class, 'schedule'])
+        ->middleware('signed')->name('schedule');
+    Route::post('/schedule/{serviceRequest:number}', [BookingController::class, 'scheduleStore'])
+        ->middleware('throttle:10,1')->name('schedule.store');
+    Route::get('/scheduled/{serviceRequest:number}', [BookingController::class, 'scheduleDone'])->name('schedule.done');
+
+    // Manage an existing online booking via a signed link (reschedule / cancel).
+    Route::get('/booking/{workOrder:number}/manage', [BookingController::class, 'manage'])
+        ->middleware('signed')->name('booking.manage');
+    Route::post('/booking/{workOrder:number}/reschedule', [BookingController::class, 'reschedule'])
+        ->middleware(['signed', 'throttle:10,1'])->name('booking.reschedule');
+    Route::post('/booking/{workOrder:number}/cancel', [BookingController::class, 'cancel'])
+        ->middleware(['signed', 'throttle:10,1'])->name('booking.cancel');
 
     // Cart.
     Route::get('/cart', [CartController::class, 'show'])->name('cart');

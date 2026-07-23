@@ -24,9 +24,10 @@ class WorkOrderController extends Controller
 {
     public function index(Request $request)
     {
-        $workOrders = WorkOrder::with(['customer', 'assignee'])
+        $workOrders = WorkOrder::with(['customer', 'assignee', 'bookingType'])
             ->search($request->string('q')->toString() ?: null)
             ->when($request->filled('status'), fn ($q) => $q->where('status', $request->string('status')))
+            ->when($request->boolean('booking'), fn ($q) => $q->whereNotNull('booking_type_id'))
             ->when(
                 $request->boolean('upcoming'),
                 fn ($q) => $q->upcoming(),
@@ -35,7 +36,7 @@ class WorkOrderController extends Controller
             ->paginate((int) config('shop.rows_per_page', 25))
             ->withQueryString();
 
-        $filters = $request->only(['q', 'status', 'upcoming']);
+        $filters = $request->only(['q', 'status', 'upcoming', 'booking']);
 
         return view('admin.work-orders.index', [
             'workOrders' => $workOrders,

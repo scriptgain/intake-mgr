@@ -9,6 +9,15 @@
         </x-slot:primary>
     </x-page-header>
 
+    @unless ($bookingTypes->isEmpty() && ! array_filter($filters))
+        <x-alert type="info" title="Each Active Type Has A Public Booking Link" class="mb-6">
+            Customers can self-schedule an open slot at
+            <code class="rounded bg-white/60 px-1 py-0.5 font-mono text-xs">/book/&lt;name&gt;</code>.
+            Use the copy icon on any active row to grab its link, or the arrow to preview the page. Slots reflect the
+            technician's availability minus their connected-calendar busy times.
+        </x-alert>
+    @endunless
+
     @if ($bookingTypes->isEmpty() && ! array_filter($filters))
         <x-card>
             <x-empty-state icon="clock" title="No Booking Types Yet"
@@ -129,6 +138,28 @@
                                     </td>
                                     <td class="vx-col-actions">
                                         <div class="flex items-center justify-end gap-1">
+                                            @if ($bookingType->is_active)
+                                                {{-- Copy public booking link. Styled tooltip teleported to <body>
+                                                     (fleet rule: never a clippable CSS tooltip), with a copied state. --}}
+                                                <span class="inline-flex"
+                                                      x-data="{ tip: false, tx: 0, ty: 0, copied: false }"
+                                                      @mouseenter="const r = $el.getBoundingClientRect(); tx = r.left + r.width / 2; ty = r.top - 8; tip = true"
+                                                      @mouseleave="tip = false">
+                                                    <button type="button" aria-label="Copy Public Booking Link"
+                                                            x-on:click="navigator.clipboard.writeText(@js(route('shop.book', $bookingType))); copied = true; setTimeout(() => copied = false, 1500)"
+                                                            class="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-white text-slate-600 ring-1 ring-inset ring-slate-300 transition hover:bg-slate-50 hover:text-slate-900">
+                                                        <x-icon x-show="!copied" name="copy" class="h-4 w-4" />
+                                                        <x-icon x-show="copied" x-cloak name="check" class="h-4 w-4 text-emerald-600" />
+                                                    </button>
+                                                    <template x-teleport="body">
+                                                        <div x-show="tip" x-cloak :style="`left:${tx}px;top:${ty}px`"
+                                                             class="fixed -translate-x-1/2 -translate-y-full pointer-events-none z-[100] whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-xs font-medium text-white shadow-lg"
+                                                             x-text="copied ? 'Copied!' : 'Copy Public Booking Link'"></div>
+                                                    </template>
+                                                </span>
+                                                <x-icon-button href="{{ route('shop.book', $bookingType) }}" icon="external"
+                                                    title="Open Public Booking Page" target="_blank" rel="noopener" />
+                                            @endif
                                             <x-icon-button href="{{ route('booking-types.edit', $bookingType) }}" icon="edit" title="Edit Booking Type" />
                                             <x-delete-button :action="route('booking-types.destroy', $bookingType)" name="del-booking-type-{{ $bookingType->id }}"
                                                 label="Delete Booking Type"
