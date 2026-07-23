@@ -128,6 +128,60 @@ class HelpCenterSeeder extends Seeder
                     ],
                 ],
             ],
+            [
+                'slug' => 'service-visits',
+                'name' => 'Service Visits',
+                'icon' => 'truck',
+                'position' => 5,
+                'description' => 'What happens before, during, and after a technician visit.',
+                'articles' => [
+                    [
+                        'slug' => 'what-to-expect-during-your-visit',
+                        'title' => 'What To Expect During Your Visit',
+                        'excerpt' => "From arrival to wrap-up, here's how a service visit goes.",
+                        'body' => "Your technician arrives within the scheduled window and will call or text when they're on the way.\n\nHere's the typical flow:\n\n- **Walkthrough** — we look at the issue and confirm what you booked.\n- **Diagnosis** — we explain what's going on and what it takes to fix it.\n- **The work** — with your go-ahead, we get it done on the spot when we can.\n- **Wrap-up** — we clean up, show you what we did, and go over any follow-up.\n\nIf the job turns out bigger than the appointment allows, we'll schedule a return visit at a time that works for you.",
+                    ],
+                    [
+                        'slug' => 'how-to-prepare-your-home',
+                        'title' => 'How To Prepare Your Home',
+                        'excerpt' => 'A few quick things that help your visit go faster.',
+                        'body' => "You don't need to do much, but these help:\n\n- **Clear the area** around the equipment or the problem spot.\n- **Secure pets** so your technician can move freely.\n- **Make a list** of anything you've noticed, even small things.\n- **Know your access** — gate codes, crawl spaces, and shutoff locations.\n\nThe clearer the path to the work, the more we can get done in one visit.",
+                    ],
+                    [
+                        'slug' => 'after-your-appointment',
+                        'title' => 'After Your Appointment',
+                        'excerpt' => 'What happens once the work is done.',
+                        'body' => "When the visit wraps up, you'll get a summary of what we did. If we recommend follow-up work, it's spelled out with no pressure.\n\n- **Receipts and invoices** land in your email and your account.\n- **Warranties** on parts and labor are noted on your work order.\n- **Questions later?** Reply to your confirmation or send a new request.\n\nIf anything doesn't feel right after we leave, tell us. We would rather come back and make it right.",
+                    ],
+                ],
+            ],
+            [
+                'slug' => 'troubleshooting',
+                'name' => 'Troubleshooting',
+                'icon' => 'bolt',
+                'position' => 6,
+                'description' => 'Quick checks and common fixes to try before you book.',
+                'articles' => [
+                    [
+                        'slug' => 'quick-checks-before-you-book',
+                        'title' => 'Quick Checks Before You Book',
+                        'excerpt' => 'Simple things to try that might save you a visit.',
+                        'body' => "Before you book, a few basics are worth a look:\n\n- **Power** — check the breaker or GFCI outlet for the equipment.\n- **Water** — confirm shutoff valves are fully open.\n- **Filters** — a clogged filter causes a surprising number of issues.\n- **Settings** — make sure a thermostat or timer isn't the culprit.\n\nStill stuck? Book a visit and note what you already tried so we come prepared.",
+                    ],
+                    [
+                        'slug' => 'common-issues-and-simple-fixes',
+                        'title' => 'Common Issues And Simple Fixes',
+                        'excerpt' => 'The problems we see most, and what you can safely check.',
+                        'body' => "**No hot water** — check the breaker and the pilot or reset button before booking.\n\n**Pool pump won't run** — confirm the timer setting and that the breaker hasn't tripped.\n\n**Weak water pressure** — a clogged aerator or a partly closed valve is often the cause.\n\n**Uneven heating or cooling** — clean or replace the filter and clear any blocked vents.\n\nIf a quick check doesn't solve it, we're glad to take it from there.",
+                    ],
+                    [
+                        'slug' => 'when-its-an-emergency',
+                        'title' => "When It's An Emergency",
+                        'excerpt' => 'How to tell an urgent problem from one that can wait.',
+                        'body' => "Some issues shouldn't wait for a standard appointment. Call us right away or book an **Emergency Callout** if you have:\n\n- **Active leaks or flooding** you can't stop at the shutoff.\n- **No heat or no cooling** in extreme weather.\n- **A gas smell** — leave the area first, then call.\n- **Sparking, burning smells, or exposed wiring.**\n\nFor anything involving gas, smoke, or fire, contact your utility or emergency services first. Safety comes before the repair.",
+                    ],
+                ],
+            ],
         ];
 
         foreach ($categories as $data) {
