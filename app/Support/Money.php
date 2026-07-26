@@ -3,7 +3,7 @@
 namespace App\Support;
 
 /**
- * Every amount in ShopMGR is an integer number of minor units (cents). This is
+ * Every amount in IntakeMGR is an integer number of minor units (cents). This is
  * the only place that turns one into a string for a human, so currency symbol,
  * decimal count, and rounding behave identically on the storefront, in the
  * admin, in emails, and in exports.

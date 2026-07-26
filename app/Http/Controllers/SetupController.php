@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * One-time first-run setup wizard for ShopMGR.
+ * One-time first-run setup wizard for IntakeMGR.
  *
  * Two steps:
  *   1. Create the first admin account (guest).

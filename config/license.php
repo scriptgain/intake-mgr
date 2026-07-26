@@ -2,7 +2,7 @@
 
 /*
 |--------------------------------------------------------------------------
-| ShopMGR Licensing
+| IntakeMGR Licensing
 |--------------------------------------------------------------------------
 | Self-hosted installs validate their license against scriptgain.com (the
 | software vendor). Responses are RSA-signed; the embedded public key below
@@ -19,7 +19,7 @@ return [
     'endpoint' => env('LICENSE_ENDPOINT', 'https://scriptgain.com/v1'),
 
     // The vendor product this build licenses against.
-    'product' => env('LICENSE_PRODUCT', 'shopmgr'),
+    'product' => env('LICENSE_PRODUCT', 'intakemgr'),
 
     // The compiled license-enforcement helper. When present + executable, the RSA
     // signature verification runs in this binary (unpatchable) instead of inline

@@ -9,7 +9,7 @@
 
   --font-sans below has always named this face, but nothing ever loaded it, so
   every screen actually rendered in the system fallback. It is served from
-  public/fonts rather than Google Fonts on purpose: ShopMGR is installed on the
+  public/fonts rather than Google Fonts on purpose: IntakeMGR is installed on the
   merchant's own server, and a self-hosted product should not make every page
   view a third-party request to Google (a privacy and, in the EU, a compliance
   problem for the merchant) or break on an air-gapped install.
@@ -40,7 +40,7 @@
 }
 
 /*
-  ShopMGR design system: "Storefront Violet".
+  IntakeMGR design system: "Storefront Violet".
   Cool slate neutrals + a violet accent. Violet keeps rose/red free for
   destructive actions, failed payments, and refund states. Tokens are defined
   once here so the whole product rebrands by editing the --color-brand-* scale.

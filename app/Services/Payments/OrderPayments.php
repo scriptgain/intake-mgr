@@ -159,7 +159,7 @@ class OrderPayments
             'metadata' => array_filter([
                 'order_number' => $order->number,
                 'order_id' => (string) $order->id,
-                'source' => 'ShopMGR',
+                'source' => 'IntakeMGR',
             ]),
         ];
 

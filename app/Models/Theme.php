@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
  * A named set of storefront design tokens.
  *
  * Tokens are stored as JSON and always read back through tokens(), which merges
- * the row over ShopMGR's shipped defaults. That means a theme saved by an older
+ * the row over IntakeMGR's shipped defaults. That means a theme saved by an older
  * release keeps working when a newer release adds a token: the new token simply
  * falls back to its default instead of rendering as an empty CSS value.
  */
@@ -25,7 +25,7 @@ class Theme extends Model
         'is_preset' => 'boolean',
     ];
 
-    /** Shipped defaults, i.e. the look ShopMGR has out of the box. */
+    /** Shipped defaults, i.e. the look IntakeMGR has out of the box. */
     public static function defaultTokens(): array
     {
         return [

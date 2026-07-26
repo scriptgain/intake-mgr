@@ -10,7 +10,7 @@ class LicenseCommand extends Command
 {
     protected $signature = 'shop:license {key? : Set/replace the license key} {--clear : Remove the stored key}';
 
-    protected $description = 'Set, clear, or re-check this install\'s ShopMGR license (scriptgain.com).';
+    protected $description = 'Set, clear, or re-check this install\'s IntakeMGR license (scriptgain.com).';
 
     public function handle(): int
     {

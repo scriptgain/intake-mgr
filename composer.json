@@ -1,13 +1,13 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "scriptgain/shop-mgr",
+    "name": "scriptgain/intake-mgr",
     "type": "project",
-    "description": "ShopMGR: self-hosted e-commerce store manager and storefront by ScriptGain.",
+    "description": "IntakeMGR: self-hosted e-commerce store manager and storefront by ScriptGain.",
     "keywords": [
         "scriptgain",
-        "shopmgr",
-        "ecommerce",
-        "storefront",
+        "intakemgr",
+        "service-desk",
+        "field-service",
         "self-hosted"
     ],
     "license": "MIT",

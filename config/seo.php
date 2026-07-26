@@ -2,7 +2,7 @@
 
 /*
 |--------------------------------------------------------------------------
-| ShopMGR SEO configuration
+| IntakeMGR SEO configuration
 |--------------------------------------------------------------------------
 | DEFAULTS ONLY. Every value here is overridden at boot from DB settings
 | (AppServiceProvider), per the fleet's DB-driven config rule. Edit them at

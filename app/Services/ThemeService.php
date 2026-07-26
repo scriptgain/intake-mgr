@@ -7,7 +7,7 @@ use App\Models\Theme;
 /**
  * The theme token pipeline.
  *
- * ShopMGR has no build step. Tailwind v4 runs in the browser and compiles the
+ * IntakeMGR has no build step. Tailwind v4 runs in the browser and compiles the
  * CSS it finds in the page's <style type="text/tailwindcss"> block, which
  * x-tailwind-cdn fills from resources/css/app.css at runtime. This service adds
  * one more @theme block after that one, built from the active theme's tokens.
@@ -340,7 +340,7 @@ class ThemeService
         }
 
         if (($data['format'] ?? null) !== 'shopmgr.theme') {
-            return ['ok' => false, 'error' => 'That JSON is not a ShopMGR theme export (missing "format": "shopmgr.theme").', 'name' => null, 'description' => null, 'tokens' => []];
+            return ['ok' => false, 'error' => 'That JSON is not an IntakeMGR theme export (missing "format": "shopmgr.theme").', 'name' => null, 'description' => null, 'tokens' => []];
         }
 
         $tokens = is_array($data['tokens'] ?? null) ? $data['tokens'] : [];
@@ -379,7 +379,7 @@ class ThemeService
      * ------------------------------------------------------------------ */
 
     /**
-     * The themes ShopMGR ships with. "Rose" is the shipped default and
+     * The themes IntakeMGR ships with. "Rose" is the shipped default and
      * reproduces app.css exactly, so activating it is always a way back.
      */
     public function presets(): array

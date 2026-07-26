@@ -99,7 +99,7 @@ class TemplateManager
      * Reading
      * ------------------------------------------------------------------ */
 
-    /** The template as ShopMGR ships it, straight off the release's filesystem. */
+    /** The template as IntakeMGR ships it, straight off the release's filesystem. */
     public function shippedSource(string $view): string
     {
         $path = $this->shippedPath($view);

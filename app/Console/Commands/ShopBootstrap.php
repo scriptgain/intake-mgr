@@ -32,7 +32,7 @@ class ShopBootstrap extends Command
         $this->issueToken();
 
         $this->newLine();
-        $this->info('ShopMGR is bootstrapped. Finish at /setup, then add products at /admin/products.');
+        $this->info('IntakeMGR is bootstrapped. Finish at /setup, then add products at /admin/products.');
 
         return self::SUCCESS;
     }

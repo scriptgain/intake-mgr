@@ -40,7 +40,7 @@
             <div class="min-w-0">
                 <h3 class="text-[15px] font-semibold text-slate-900">How Editing Works Here</h3>
                 <p class="mt-1 max-w-prose text-sm leading-relaxed text-slate-500">
-                    Your edits are stored in this store's database, never written back over the files a ShopMGR
+                    Your edits are stored in this store's database, never written back over the files an IntakeMGR
                     release ships. That means an update cannot overwrite your work, and your work cannot block an
                     update. Every save is compiled and parse-checked first, so a template with a syntax error is
                     rejected instead of taking a page down. Any template can be reverted to an earlier version, or

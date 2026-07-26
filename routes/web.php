@@ -52,7 +52,7 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| ShopMGR routes
+| IntakeMGR routes
 |--------------------------------------------------------------------------
 | Two halves, deliberately separated:
 |   - the public STOREFRONT at /            (name prefix "shop.")

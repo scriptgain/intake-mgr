@@ -68,7 +68,7 @@ class DemoStoreSeeder extends Seeder
                     'description' => $excerpt.' '.'Made in small batches and backed by a two-year guarantee. '
                         .'Ships free on orders over seventy-five dollars.',
                     'status' => 'active',
-                    'vendor' => 'ShopMGR Demo Goods',
+                    'vendor' => 'IntakeMGR Demo Supply',
                     'is_featured' => $i < 4,
                     'position' => $i,
                     'requires_shipping' => true,

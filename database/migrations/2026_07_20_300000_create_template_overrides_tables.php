@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Schema;
  * resources/views. Two reasons, both of which would otherwise cost the merchant
  * their storefront:
  *
- *   1. ShopMGR self-updates from signed ScriptGain releases. A release rsyncs
+ *   1. IntakeMGR self-updates from signed ScriptGain releases. A release rsyncs
  *      resources/views, so a file edit would be silently clobbered on update.
  *   2. Conversely, a merchant edit sitting in the release tree would make the
  *      updater's own file comparison dirty and block the update.

@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Schema;
  * most likely to grow between releases, and a JSON column means adding a token
  * is a code change, not a migration on every merchant's install.
  *
- * `is_preset` marks the themes ShopMGR ships. Presets can be edited and
+ * `is_preset` marks the themes IntakeMGR ships. Presets can be edited and
  * duplicated but not deleted, so a merchant can always get back to a known-good
  * starting point.
  */

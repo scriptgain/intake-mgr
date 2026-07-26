@@ -149,10 +149,10 @@
         </div>
     </x-card>
 
-    <x-modal name="import-theme" title="Import A Theme" subtitle="Upload a ShopMGR theme export, or paste its JSON." icon="download" maxWidth="max-w-lg">
+    <x-modal name="import-theme" title="Import A Theme" subtitle="Upload an IntakeMGR theme export, or paste its JSON." icon="download" maxWidth="max-w-lg">
         <form method="POST" action="{{ route('themes.import') }}" enctype="multipart/form-data" id="import-theme-form" class="space-y-4">
             @csrf
-            <x-field label="Theme File" for="theme-file" hint="A .json file exported from ShopMGR.">
+            <x-field label="Theme File" for="theme-file" hint="A .json file exported from IntakeMGR.">
                 <input id="theme-file" type="file" name="file" accept="application/json,.json"
                        class="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-slate-700 hover:file:bg-slate-200">
             </x-field>

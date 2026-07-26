@@ -20,7 +20,7 @@ class LicenseController extends Controller
             'status' => $status['state'],
             'expires_at' => $payload['expires_at'] ?? null,
             'checked_at' => Setting::get('license_checked_at'),
-            'product' => config('brand.name', 'ShopMGR'),
+            'product' => config('brand.name', 'IntakeMGR'),
         ];
 
         return view('settings.license', compact('license'));

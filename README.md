@@ -1,4 +1,4 @@
-# ShopMGR
+# IntakeMGR
 
 Self-hosted e-commerce by [ScriptGain](https://scriptgain.com).
 
@@ -48,5 +48,5 @@ resolving against a newer PHP produces a tree that will not load at runtime.
 
 ## Licensing
 
-ShopMGR validates against `https://scriptgain.com/v1`. One activation per
+IntakeMGR validates against `https://scriptgain.com/v1`. One activation per
 license by default.

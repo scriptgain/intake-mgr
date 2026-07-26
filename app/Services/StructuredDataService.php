@@ -18,7 +18,7 @@ use Illuminate\Support\Str;
  * .price_cents, .inventory_qty) and converted here. Nothing is invented.
  *
  * AggregateRating and Review are conditional on real review data existing.
- * ShopMGR ships no reviews table, so on a stock install those nodes are simply
+ * IntakeMGR ships no reviews table, so on a stock install those nodes are simply
  * absent, which is correct: fabricated ratings are a manual-action risk, not a
  * missing feature.
  */
@@ -146,7 +146,7 @@ class StructuredDataService
      * ------------------------------------------------------------------ */
 
     /**
-     * ShopMGR has no reviews table today. This stays here (rather than being
+     * IntakeMGR has no reviews table today. This stays here (rather than being
      * hard-coded to null) so that the day a reviews table lands the rich result
      * turns itself on, and so the intent is unambiguous: no data, no node.
      */

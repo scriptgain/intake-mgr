@@ -2,7 +2,7 @@
 
 /*
 |--------------------------------------------------------------------------
-| ShopMGR store configuration
+| IntakeMGR store configuration
 |--------------------------------------------------------------------------
 | These are DEFAULTS ONLY. Everything here is overridden at boot from DB
 | settings (AppServiceProvider + the Setting model), per the fleet's DB-driven
@@ -23,7 +23,7 @@ return [
     // Business default timezone for scheduling/availability (per-staff can override).
     'timezone' => env('SHOP_TIMEZONE', 'America/Phoenix'),
 
-    // Money. ShopMGR stores every amount as an integer in the currency's minor
+    // Money. IntakeMGR stores every amount as an integer in the currency's minor
     // unit (cents) to avoid float drift; `currency_decimals` drives display.
     'currency' => 'USD',
     'currency_symbol' => '$',

@@ -22,7 +22,7 @@ use Illuminate\Support\Str;
  * E-commerce duplication comes from three places, and each gets a different
  * answer rather than one blunt rule:
  *
- * 1. VARIANTS. ShopMGR picks variants client-side, so a variant is not its own
+ * 1. VARIANTS. IntakeMGR picks variants client-side, so a variant is not its own
  *    document; ?variant=N is a deep link into the same page. Those URLs
  *    canonicalise to the bare product URL. One product, one indexed document,
  *    all link equity on it.
@@ -421,7 +421,7 @@ class SeoService
     private function finish(SeoData $data, string $rawTitle, bool $templated = true): SeoData
     {
         // A hand-written meta title is the whole title. Appending the store
-        // name to it produces "Waxed Cotton Overnight Bag: ShopMGR: ShopMGR"
+        // name to it produces "Waxed Cotton Overnight Bag: IntakeMGR: IntakeMGR"
         // the moment a merchant writes the store name into the field, and it
         // takes the length control away from the person who chose the words.
         $data->title = $templated ? $this->applyTemplate($rawTitle) : $rawTitle;

@@ -28,7 +28,7 @@
                     method="DELETE"
                     tone="danger"
                     title="Reset To The Shipped Default?"
-                    :message="'Your customised version of ' . $meta['label'] . ' will stop being used immediately and the template ShopMGR ships will take over. Your edit history is kept, so you can still bring any earlier version back afterwards.'"
+                    :message="'Your customised version of ' . $meta['label'] . ' will stop being used immediately and the template IntakeMGR ships will take over. Your edit history is kept, so you can still bring any earlier version back afterwards.'"
                     confirm="Reset Template"
                     confirm-variant="danger"
                     confirm-icon="restore">

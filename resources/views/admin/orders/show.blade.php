@@ -248,7 +248,7 @@
                 </x-card>
 
                 {{-- Payment. Brand and last four are the only card details
-                     ShopMGR stores; there is nothing else here to show. --}}
+                     IntakeMGR stores; there is nothing else here to show. --}}
                 <x-card title="Payment">
                     <dl class="space-y-3 text-sm">
                         <div class="flex items-center justify-between gap-3">

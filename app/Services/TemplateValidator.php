@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Blade;
 /**
  * The safety net in front of every template save.
  *
- * ShopMGR lets merchants edit real Blade, which means a merchant can type a
+ * IntakeMGR lets merchants edit real Blade, which means a merchant can type a
  * syntax error into the checkout template. On a shop, a 500 is not an
  * inconvenience, it is lost revenue for as long as nobody notices. So nothing
  * is ever persisted until it has been proven to compile to PARSEABLE PHP.

@@ -1,5 +1,5 @@
 /**
- * ShopMGR spam protection — reCAPTCHA v3 token fetch.
+ * IntakeMGR spam protection — reCAPTCHA v3 token fetch.
  *
  * v3 is invisible: there is no widget to tick, so the token has to be produced
  * on submit and posted in a hidden field. This script hooks the form that owns a

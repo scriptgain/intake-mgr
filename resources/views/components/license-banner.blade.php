@@ -31,7 +31,7 @@
                 <p class="text-sm font-semibold {{ $tone['text'] }}">{{ $heading }}</p>
                 <p class="text-sm {{ $tone['text'] }} opacity-90">{{ $lic['message'] }}
                     Enter or update your key with <code class="font-mono text-xs">php artisan shop:license &lt;key&gt;</code>,
-                    or purchase one at <a href="https://scriptgain.com/products/shopmgr" class="underline font-medium" target="_blank" rel="noopener">scriptgain.com</a>.
+                    or purchase one at <a href="https://scriptgain.com/products/intakemgr" class="underline font-medium" target="_blank" rel="noopener">scriptgain.com</a>.
                 </p>
             </div>
         </div>

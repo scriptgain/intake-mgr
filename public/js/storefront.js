@@ -1,5 +1,5 @@
 /**
- * ShopMGR storefront JS. Registers Alpine components used across the public
+ * IntakeMGR storefront JS. Registers Alpine components used across the public
  * shop views: the product variant picker, quantity steppers, and the
  * checkout live-quote form. Loaded with `defer` after the Alpine CDN script,
  * so `alpine:init` always fires after this file has registered everything.

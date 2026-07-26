@@ -1,5 +1,5 @@
 /**
- * ShopMGR merchant admin — small Alpine components and vanilla-JS helpers used
+ * IntakeMGR merchant admin — small Alpine components and vanilla-JS helpers used
  * across the admin views. Loaded once from the layout (cache-busted via
  * asset_v()). No external chart/UI libraries — everything here is hand-rolled
  * SVG or plain DOM.
@@ -175,7 +175,7 @@
          * The Blade editor behind Appearance -> Templates.
          *
          * Hand-rolled on purpose. A code editor library (CodeMirror, Monaco,
-         * Ace) would mean either a CDN dependency or a build step, and ShopMGR
+         * Ace) would mean either a CDN dependency or a build step, and IntakeMGR
          * ships with neither: it installs on a merchant's own server and has to
          * work air-gapped. So this is a plain <textarea> with two siblings kept
          * in lockstep with it - a line-number gutter and a syntax-highlight

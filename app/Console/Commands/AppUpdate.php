@@ -19,7 +19,7 @@ class AppUpdate extends Command
 {
     protected $signature = 'app:update {--check : only report status, do not apply}';
 
-    protected $description = 'Check for and apply the latest ShopMGR release';
+    protected $description = 'Check for and apply the latest IntakeMGR release';
 
     public function handle(): int
     {

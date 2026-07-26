@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
 /**
- * Validates this self-hosted ShopMGR install against scriptgain.com.
+ * Validates this self-hosted IntakeMGR install against scriptgain.com.
  *
  * States returned by status():
  *   valid       - license active, response signature verified

@@ -177,7 +177,7 @@
 
                 <x-card title="Typography, Corners And Rhythm">
                     <div class="space-y-6">
-                        <x-field label="Typeface" for="font_family" hint="Every option is bundled with ShopMGR or built into the device. Nothing here loads a font from a third party." :error="$errors->first('font_family')">
+                        <x-field label="Typeface" for="font_family" hint="Every option is bundled with IntakeMGR or built into the device. Nothing here loads a font from a third party." :error="$errors->first('font_family')">
                             <x-select id="font_family" name="font_family" x-model="t.font_family">
                                 @foreach ($fonts as $value => $label)
                                     <option value="{{ $value }}" @selected(old('font_family', $tokens['font_family']) === $value)>{{ $label }}</option>
@@ -200,7 +200,7 @@
                                 <span class="tabular text-sm text-slate-500"><span x-text="t.radius"></span>%</span>
                             </div>
                             <input id="radius" name="radius" type="range" min="0" max="220" step="5" x-model="t.radius" class="th-range">
-                            <p class="mt-1.5 text-sm text-slate-500">0% is fully square, 100% is what ShopMGR ships, 220% is very soft.</p>
+                            <p class="mt-1.5 text-sm text-slate-500">0% is fully square, 100% is what IntakeMGR ships, 220% is very soft.</p>
                         </div>
 
                         <div>

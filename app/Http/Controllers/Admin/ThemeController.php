@@ -121,7 +121,7 @@ class ThemeController extends Controller
 
         return response($payload, 200, [
             'Content-Type' => 'application/json',
-            'Content-Disposition' => 'attachment; filename="shopmgr-theme-'.$theme->slug.'.json"',
+            'Content-Disposition' => 'attachment; filename="intakemgr-theme-'.$theme->slug.'.json"',
         ]);
     }
 

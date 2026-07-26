@@ -2,7 +2,7 @@
 
 /*
 |--------------------------------------------------------------------------
-| ShopMGR payments
+| IntakeMGR payments
 |--------------------------------------------------------------------------
 | Transport-level knobs only. Every credential lives in the settings table
 | (Settings -> Payments), never here and never in .env, per the fleet's

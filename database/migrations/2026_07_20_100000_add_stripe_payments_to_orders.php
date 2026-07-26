@@ -26,7 +26,7 @@ return new class extends Migration
                 if (! Schema::hasColumn('orders', 'stripe_charge_id')) {
                     $table->string('stripe_charge_id')->nullable();
                 }
-                // The only card details ShopMGR ever persists.
+                // The only card details IntakeMGR ever persists.
                 if (! Schema::hasColumn('orders', 'card_brand')) {
                     $table->string('card_brand', 32)->nullable();
                 }

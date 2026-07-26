@@ -9,14 +9,14 @@ use Illuminate\Support\Facades\Log;
 /**
  * Thin Stripe REST client.
  *
- * Deliberately NOT the stripe/stripe-php SDK. ShopMGR needs six endpoints and an
+ * Deliberately NOT the stripe/stripe-php SDK. IntakeMGR needs six endpoints and an
  * HMAC signature check. The SDK is a large dependency to carry into a
  * self-hosted install for that, and this project's composer.lock is
  * platform-pinned to PHP 8.3.30 while the host CLI is 8.4, which makes any
  * dependency resolution here a deployment risk rather than a convenience.
  * Swapping this class for the SDK later touches nothing outside this file.
  *
- * MERCHANT MODEL: direct charges on the merchant's own Stripe account. ShopMGR
+ * MERCHANT MODEL: direct charges on the merchant's own Stripe account. IntakeMGR
  * is self-hosted software, not a marketplace: there is no platform account, no
  * Connect, and no application fee. The merchant's secret key is the only
  * credential, and funds settle straight into their own balance.

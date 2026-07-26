@@ -56,7 +56,7 @@
                 </dl>
             </x-card>
             <x-card title="Need A Key?">
-                <p class="text-sm text-slate-600">Purchase or manage your subscription at <a href="https://scriptgain.com/products/shopmgr" target="_blank" rel="noopener" class="text-brand-700 hover:text-brand-800 font-medium">scriptgain.com</a>.</p>
+                <p class="text-sm text-slate-600">Purchase or manage your subscription at <a href="https://scriptgain.com/products/intakemgr" target="_blank" rel="noopener" class="text-brand-700 hover:text-brand-800 font-medium">scriptgain.com</a>.</p>
             </x-card>
         </div>
     </div>
