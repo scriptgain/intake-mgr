@@ -3,9 +3,9 @@
 namespace App\Services\Captcha\Providers;
 
 /**
- * Cloudflare Turnstile. A natural fit here: shop.allenjenkins.dev already sits
- * behind Cloudflare, so the challenge is served from the same edge. Mostly
- * invisible, no puzzle in the common case.
+ * Cloudflare Turnstile. A natural fit for sites already behind Cloudflare,
+ * since the challenge is served from the same edge. Mostly invisible, with no
+ * puzzle in the common case.
  */
 class TurnstileProvider extends TokenVerifyProvider
 {
