@@ -25,7 +25,7 @@ answer recorded against the job.
 
 **Book it properly**
 Public self-serve booking against real technician availability, with two-way
-calendar sync for Google, Microsoft, Apple, and Nylas — so a tech's dentist
+calendar sync for Google, Microsoft, Apple, and Nylas, so a tech's dentist
 appointment blocks the slot automatically. Customers reschedule or cancel from a
 signed link without calling you.
 
@@ -35,7 +35,7 @@ a project when one engagement spans several visits.
 
 **Get paid**
 Invoice straight from the completed work order and take the card yourself. Card
-processing runs through **your** Stripe or Authorize.Net account — we never touch
+processing runs through **your** Stripe or Authorize.Net account. We never touch
 the money and never take a cut.
 
 **Give customers a place to look**
@@ -98,7 +98,7 @@ Maintenance tasks from the command line:
 | `php artisan db-backup:run` | Backs up the database. |
 | `php artisan firewall:clear` | Gets you back in if an IP rule locks you out. |
 
-*The command prefix is `shop:` rather than `intake:` — IntakeMGR was built on
+*The command prefix is `shop:` rather than `intake:`: IntakeMGR was built on
 ScriptGain's commerce platform and kept its internal namespace. Cosmetic, but worth
 knowing before you type the command that doesn't exist.*
 
@@ -111,7 +111,7 @@ A Linux server with PHP 8.3 and MySQL or MariaDB.
 Each provider needs an app you register yourself, and the credentials go in the
 panel, not in a config file. Two things that waste an afternoon otherwise: a
 provider's green "Test" button only confirms the fields are filled, not that the
-secret is correct — only a real Connect proves that. And Google secrets look like
+secret is correct, and only a real Connect proves that. And Google secrets look like
 `GOCSPX-…` while Azure secrets contain a `~`; pasting one into the other's box
 produces an unhelpful `invalid_client`.
 
